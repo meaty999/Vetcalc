@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vet Nurse Dose Calc</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; color: #333; padding: 15px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; margin: 20px auto; }
+        h2 { margin-top: 0; color: #00768e; text-align: center; font-size: 1.4rem; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background-color: #00768e; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        button:active { background-color: #005c6f; }
+        .result-box { display: none; margin-top: 20px; padding: 15px; background-color: #e6f4f7; border-left: 5px solid #00768e; border-radius: 4px; }
+        .result-title { font-weight: bold; color: #005c6f; margin-bottom: 5px; }
+        .math-breakdown { font-size: 0.85rem; color: #666; margin-top: 10px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px; }
+        .warning { font-size: 0.75rem; color: #999; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🐾 Clinical Dose Calculator</h2>
+    
+    <div class="input-group">
+        <label for="weight">Patient Weight (kg)</label>
+        <input type="number" id="weight" step="0.01" placeholder="e.g. 12.5">
+    </div>
+
+    <div class="input-group">
+        <label for="doseRate">Prescribed Dose Rate (mg/kg)</label>
+        <input type="number" id="doseRate" step="0.01" placeholder="e.g. 5">
+    </div>
+
+    <div class="input-group">
+        <label for="form">Formulation Type</label>
+        <select id="form" onchange="toggleConcentration()">
+            <option value="mg_ml">Liquid / Injection (mg/mL)</option>
+            <option value="percent">Liquid / Injection (%)</option>
+            <option value="tablet">Tablet (mg/tablet)</option>
+        </select>
+    </div>
+
+    <div class="input-group" id="strengthGroup">
+        <label id="strengthLabel" for="concentration">Drug Concentration (mg/mL)</label>
+        <input type="number" id="concentration" step="0.01" placeholder="e.g. 10">
+    </div>
+
+    <button onclick="calculateDose()">Calculate Volume/Dose</button>
+
+    <div id="result" class="result-box">
+        <div class="result-title">Required Admin Amount:</div>
+        <div id="finalOutput" style="font-size: 1.3rem; font-weight: bold; color: #003b47;"></div>
+        <div id="mathBreakdown" class="math-breakdown"></div>
+    </div>
+    
+    <p class="warning">Independent clinical verification required. Dual-signoff recommended.</p>
+</div>
+
+<script>
+    function toggleConcentration() {
+        const form = document.getElementById('form').value;
+        const label = document.getElementById('strengthLabel');
+        const input = document.getElementById('concentration');
+        
+        if (form === 'tablet') {
+            label.innerText = "Tablet Strength (mg per tablet)";
+            input.placeholder = "e.g. 50";
+        } else if (form === 'percent') {
+            label.innerText = "Drug Percentage (%)";
+            input.placeholder = "e.g. 2";
+        } else {
+            label.innerText = "Drug Concentration (mg/mL)";
+            input.placeholder = "e.g. 10";
+        }
+    }
+
+    function calculateDose() {
+        const weight = parseFloat(document.getElementById('weight').value);
+        const doseRate = parseFloat(document.getElementById('doseRate').value);
+        let strengthInput = parseFloat(document.getElementById('concentration').value);
+        const form = document.getElementById('form').value;
+
+        if (!weight || !doseRate || !strengthInput) {
+            alert("Please fill in all medical fields.");
+            return;
+        }
+
+        const totalMg = weight * doseRate;
+        let finalAmount = 0;
+        let unit = "";
+        let workingMgPerMl = strengthInput;
+        let percentExplanation = "";
+
+        if (form === 'percent') {
+            workingMgPerMl = strengthInput * 10;
+            percentExplanation = `Converted ${strengthInput}% to ${workingMgPerMl} mg/mL.<br>`;
+            finalAmount = totalMg / workingMgPerMl;
+            unit = " mL";
+        } else if (form === 'mg_ml') {
+            finalAmount = totalMg / workingMgPerMl;
+            unit = " mL";
+        } else if (form === 'tablet') {
+            finalAmount = totalMg / strengthInput;
+            unit = " Tablets";
+        }
+
+        const roundedAmount = Math.round(finalAmount * 100) / 100;
+        const roundedMg = Math.round(totalMg * 100) / 100;
+
+        document.getElementById('finalOutput').innerText = roundedAmount + unit + ` (${roundedMg} mg total)`;
+        
+        let breakdownHTML = `<strong>Verification Math:</strong><br>`;
+        if (percentExplanation) {
+            breakdownHTML += percentExplanation;
+        }
+        breakdownHTML += `${weight} kg × ${doseRate} mg/kg = ${roundedMg} mg total.<br>`;
+        
+        if (form === 'tablet') {
+            breakdownHTML += `${roundedMg} mg ÷ ${strengthInput} mg/tab = ${roundedAmount}${unit}.`;
+        } else {
+            breakdownHTML += `${roundedMg} mg ÷ ${workingMgPerMl} mg/mL = ${roundedAmount}${unit}.`;
+        }
+
+        document.getElementById('mathBreakdown').innerHTML = breakdownHTML;
+        document.getElementById('result').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
