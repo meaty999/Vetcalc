@@ -3,129 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vet Nurse Dose Calc</title>
+    <title>Donna's Vet Nurse Dashboard</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; color: #333; padding: 15px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; margin: 20px auto; }
-        h2 { margin-top: 0; color: #00768e; text-align: center; font-size: 1.4rem; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 12px; background-color: #00768e; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
-        button:active { background-color: #005c6f; }
-        .result-box { display: none; margin-top: 20px; padding: 15px; background-color: #e6f4f7; border-left: 5px solid #00768e; border-radius: 4px; }
-        .result-title { font-weight: bold; color: #005c6f; margin-bottom: 5px; }
-        .math-breakdown { font-size: 0.85rem; color: #666; margin-top: 10px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px; }
-        .warning { font-size: 0.75rem; color: #999; text-align: center; margin-top: 15px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f4f8; color: #333; padding: 10px; margin: 0; }
+        .wrapper { max-width: 460px; margin: 0 auto; }
+        
+        /* Master Navigation Dock */
+        .master-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #1a252f; padding: 6px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .nav-btn { background: none; border: none; color: #95a5a6; padding: 10px 2px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; border-radius: 8px; transition: all 0.2s; }
+        .nav-btn span { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+        .nav-btn.active { background: #00768e; color: white; }
+        .nav-btn.danger-tab.active { background: #c53030; }
+
+        /* Card container */
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        
+        /* Headings & Structure */
+        h2 { margin-top: 0; font-size: 1.3rem; text-align: center; padding-bottom: 10px; border-bottom: 2px solid #f0f4f8; }
+        .blue-title { color: #00768e; }
+        .red-title { color: #c53030; }
+        .orange-title { color: #dd6b20; }
+        .green-title { color: #2f855a; }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; color: #555; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Buttons */
+        button.calc-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .blue-btn { background-color: #00768e; } .blue-btn:active { background-color: #005c6f; }
+        .red-btn { background-color: #c53030; } .red-btn:active { background-color: #9b2c2c; }
+        .orange-btn { background-color: #dd6b20; } .orange-btn:active { background-color: #b75017; }
+        .green-btn { background-color: #2f855a; } .green-btn:active { background-color: #22543d; }
+
+        /* Output Formatting */
+        .result-box { display: none; margin-top: 15px; padding: 15px; border-radius: 6px; }
+        .blue-box { background-color: #e6f4f7; border-left: 5px solid #00768e; }
+        .red-box { background-color: #fff5f5; border-left: 5px solid #c53030; }
+        .orange-box { background-color: #fffaf0; border-left: 5px solid #dd6b20; }
+        .green-box { background-color: #f0fff4; border-left: 5px solid #2f855a; }
+        
+        .result-title { font-weight: bold; margin-bottom: 5px; font-size: 1rem; }
+        .math-breakdown { font-size: 0.85rem; color: #555; margin-top: 10px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px; line-height: 1.4; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .result-table th, .result-table td { padding: 8px; border-bottom: 1px solid #edf2f7; text-align: left; font-size: 0.9rem; }
+        .result-table th { background-color: #fff5f5; color: #9b2c2c; }
+
+        .alert-banner { padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .warning-text { font-size: 0.7rem; color: #a0aec0; text-align: center; margin-top: 15px; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🐾 Clinical Dose Calculator</h2>
-    
-    <div class="input-group">
-        <label for="weight">Patient Weight (kg)</label>
-        <input type="number" id="weight" step="0.01" placeholder="e.g. 12.5">
-    </div>
+<div class="wrapper">
+    <nav class="master-nav">
+        <button class="nav-btn active" onclick="switchPanel('meds')"><span>💊</span>Doses</button>
+        <button class="nav-btn" onclick="switchPanel('fluids')"><span>💧</span>Fluids/CRI</button>
+        <button class="nav-btn" onclick="switchPanel('diets')"><span>⚖️</span>Weight</button>
+        <button class="nav-btn danger-tab" onclick="switchPanel('crash')"><span>🚨</span>Triage</button>
+    </nav>
 
-    <div class="input-group">
-        <label for="doseRate">Prescribed Dose Rate (mg/kg)</label>
-        <input type="number" id="doseRate" step="0.01" placeholder="e.g. 5">
-    </div>
+    <div class="card">
+        <div id="panel-meds" class="panel active">
+            <h2 class="blue-title">🐾 Drug Dosage Calculator</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="mw" step="0.01" placeholder="e.g. 12.5"></div>
+            <div class="input-group"><label>Dose Rate (mg/kg)</label><input type="number" id="mdr" step="0.01" placeholder="e.g. 5"></div>
+            <div class="input-group">
+                <label>Formulation Type</label>
+                <select id="mform" onchange="toggleMedsForm()">
+                    <option value="mg_ml">Liquid / Injection (mg/mL)</option>
+                    <option value="percent">Liquid / Injection (%)</option>
+                    <option value="tablet">Tablet (mg/tablet)</option>
+                </select>
+            </div>
+            <div class="input-group"><label id="mlbl">Drug Concentration (mg/mL)</label><input type="number" id="mconc" step="0.01" placeholder="e.g. 10"></div>
+            <button class="calc-btn blue-btn" onclick="calcMeds()">Calculate Volume</button>
+            <div id="res-meds" class="result-box blue-box">
+                <div class="result-title" style="color:#005c6f;">Required Administration Amount:</div>
+                <div id="out-meds" style="font-size: 1.3rem; font-weight: bold; color: #003b47;"></div>
+                <div id="break-meds" class="math-breakdown"></div>
+            </div>
+        </div>
 
-    <div class="input-group">
-        <label for="form">Formulation Type</label>
-        <select id="form" onchange="toggleConcentration()">
-            <option value="mg_ml">Liquid / Injection (mg/mL)</option>
-            <option value="percent">Liquid / Injection (%)</option>
-            <option value="tablet">Tablet (mg/tablet)</option>
-        </select>
-    </div>
+        <div id="panel-fluids" class="panel">
+            <h2 class="orange-title">💧 Fluid Therapy & CRI Engine</h2>
+            <div style="font-weight: bold; font-size:0.9rem; margin-bottom:10px; color:#b75017;">Section A: Fluid Rate Plan</div>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="fw" step="0.1" placeholder="e.g. 20" oninput="autoFluidMaintenance()"></div>
+            <div class="input-group"><label>Maintenance Rate Target (mL/kg/hr)</label><input type="number" id="fmaint" value="2" placeholder="Standard is 2mL/kg/hr"></div>
+            <div class="input-group"><label>Dehydration Deficit Factor (%)</label><input type="number" id="fdehyd" placeholder="e.g. 5 for 5% dehydration"></div>
+            <div class="input-group"><label>Hours to replace deficit</label><input type="number" id="fhours" value="24"></div>
+            
+            <div style="font-weight: bold; font-size:0.9rem; margin-top:15px; margin-bottom:10px; color:#b75017;">Section B: CRI Drug Inclusion (Optional)</div>
+            <div class="input-group"><label>Desired CRI Dose (mg/kg/hour)</label><input type="number" id="fcri_dose" step="0.001" placeholder="e.g. 0.1"></div>
+            <div class="input-group"><label>Stock Drug Concentration (mg/mL)</label><input type="number" id="fcri_conc" step="0.01" placeholder="e.g. 5"></div>
+            <div class="input-group"><label>Physical Infusion Fluid Bag Volume (mL)</label><input type="number" id="fbag" value="500"></div>
 
-    <div class="input-group" id="strengthGroup">
-        <label id="strengthLabel" for="concentration">Drug Concentration (mg/mL)</label>
-        <input type="number" id="concentration" step="0.01" placeholder="e.g. 10">
-    </div>
+            <button class="calc-btn orange-btn" onclick="calcFluids()">Process Infusion Plan</button>
+            
+            <div id="res-fluids" class="result-box orange-box">
+                <div class="result-title" style="color:#b75017;">Calculated IV Pump Matrix:</div>
+                <div id="out-fluids" style="font-size: 1.1rem; font-weight: bold; line-height: 1.4;"></div>
+                <div id="break-fluids" class="math-breakdown"></div>
+            </div>
+        </div>
 
-    <button onclick="calculateDose()">Calculate Volume/Dose</button>
+        <div id="panel-diets" class="panel">
+            <h2 class="green-title">⚖️ Medical Weight Loss Management</h2>
+            <div class="input-group"><label>Species</label><select id="dspecies"><option value="dog">Canine (Dog)</option><option value="cat">Feline (Cat)</option></select></div>
+            <div class="input-group">
+                <label>Diet Type</label>
+                <select id="ddiet">
+                    <option value="hills">Hill's Prescription Diet Metabolic</option>
+                    <option value="purina">Purina Pro Plan OM Obesity Mgmt</option>
+                    <option value="royal">Royal Canin Veterinary Satiety</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Current Weight (kg)</label><input type="number" id="dcw" step="0.1" placeholder="e.g. 35" oninput="autoIdealWeight()"></div>
+            <div class="input-group">
+                <label>Body Condition Score (BCS)</label>
+                <select id="dbcs" onchange="autoIdealWeight()">
+                    <option value="5">5/9 (Ideal)</option><option value="6">6/9 (Overweight ~10%)</option><option value="7">7/9 (Heavy Overweight ~20%)</option><option value="8">8/9 (Obese ~30%)</option><option value="9">9/9 (Morbidly Obese ~40%)</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Target Ideal Weight (kg)</label><input type="number" id="dtw" step="0.1"></div>
+            <button class="calc-btn green-btn" onclick="calcDiet()">Calculate Daily Ration</button>
+            <div id="res-diets" class="result-box green-box">
+                <div id="badge-diet" style="color:white; display:inline-block; padding:3px 8px; font-size:0.75rem; font-weight:bold; border-radius:4px; margin-bottom:5px;"></div>
+                <div class="result-title" style="color:#22543d;">Ration Guide:</div>
+                <div id="out-diets" style="font-size: 1.3rem; font-weight: bold; color: #1c4524;"></div>
+                <div id="break-diets" class="math-breakdown"></div>
+            </div>
+        </div>
 
-    <div id="result" class="result-box">
-        <div class="result-title">Required Admin Amount:</div>
-        <div id="finalOutput" style="font-size: 1.3rem; font-weight: bold; color: #003b47;"></div>
-        <div id="mathBreakdown" class="math-breakdown"></div>
+        <div id="panel-crash" class="panel">
+            <h2 class="red-title">🚨 RECOVER CPR & Triage Index</h2>
+            <div class="input-group"><label>Patient Weight (kg) [Runs CPR Sheet instantly]</label><input type="number" id="cw" step="0.1" placeholder="e.g. 12" oninput="runCrash()"></div>
+            <table class="result-table">
+                <thead><tr><th>Emergency Parameter</th><th>Stat Volume / Size</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Adrenaline (1 mg/mL)</strong><br><small>Low Dose CPR cycle</small></td><td><span id="cc-adr" style="font-weight:bold; color:#c53030;">0.00 mL</span></td></tr>
+                    <tr><td><strong>Atropine (0.6 mg/mL)</strong><br><small>Bradycardia/Vagal tone</small></td><td><span id="cc-atr" style="font-weight:bold; color:#c53030;">0.00 mL</span></td></tr>
+                    <tr><td><strong>Endotracheal Tube Estimate</strong><br><small>Prepare +/- 1 size alternative</small></td><td><span id="cc-tub" style="font-weight:bold;">ID: — mm</span></td></tr>
+                </tbody>
+            </table>
+            
+            <div style="font-weight: bold; font-size:0.9rem; margin-top:15px; margin-bottom:10px; color:#c53030;">Chocolate Triage Calculator</div>
+            <div class="input-group">
+                <label>Chocolate Type</label>
+                <select id="ct">
+                    <option value="2">Standard Milk Chocolate</option><option value="8">Dark Chocolate (Plain)</option><option value="14">Baking Cocoa Powder</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Grams Consumed</label><input type="number" id="cg" placeholder="e.g. 150"></div>
+            <button class="calc-btn red-btn" onclick="calcTox()">Assess Toxicity</button>
+            <div id="res-tox" class="result-box red-box">
+                <div id="banner-tox" class="alert-banner"></div>
+                <div id="out-tox" style="font-size:0.9rem;"></div>
+            </div>
+        </div>
+
+        <p class="warning-text">Oxford Veterinary Clinical Suite. Designed for qualified validation sign-off profiles.</p>
     </div>
-    
-    <p class="warning">Independent clinical verification required. Dual-signoff recommended.</p>
 </div>
 
 <script>
-    function toggleConcentration() {
-        const form = document.getElementById('form').value;
-        const label = document.getElementById('strengthLabel');
-        const input = document.getElementById('concentration');
-        
-        if (form === 'tablet') {
-            label.innerText = "Tablet Strength (mg per tablet)";
-            input.placeholder = "e.g. 50";
-        } else if (form === 'percent') {
-            label.innerText = "Drug Percentage (%)";
-            input.placeholder = "e.g. 2";
-        } else {
-            label.innerText = "Drug Concentration (mg/mL)";
-            input.placeholder = "e.g. 10";
-        }
+    function switchPanel(panelId) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('panel-' + panelId).classList.add('active');
     }
 
-    function calculateDose() {
-        const weight = parseFloat(document.getElementById('weight').value);
-        const doseRate = parseFloat(document.getElementById('doseRate').value);
-        let strengthInput = parseFloat(document.getElementById('concentration').value);
-        const form = document.getElementById('form').value;
-
-        if (!weight || !doseRate || !strengthInput) {
-            alert("Please fill in all medical fields.");
-            return;
-        }
-
-        const totalMg = weight * doseRate;
-        let finalAmount = 0;
-        let unit = "";
-        let workingMgPerMl = strengthInput;
-        let percentExplanation = "";
-
-        if (form === 'percent') {
-            workingMgPerMl = strengthInput * 10;
-            percentExplanation = `Converted ${strengthInput}% to ${workingMgPerMl} mg/mL.<br>`;
-            finalAmount = totalMg / workingMgPerMl;
-            unit = " mL";
-        } else if (form === 'mg_ml') {
-            finalAmount = totalMg / workingMgPerMl;
-            unit = " mL";
-        } else if (form === 'tablet') {
-            finalAmount = totalMg / strengthInput;
-            unit = " Tablets";
-        }
-
-        const roundedAmount = Math.round(finalAmount * 100) / 100;
-        const roundedMg = Math.round(totalMg * 100) / 100;
-
-        document.getElementById('finalOutput').innerText = roundedAmount + unit + ` (${roundedMg} mg total)`;
+    // --- PANEL 1: DRUG MATHS ENGINE ---
+    function toggleMedsForm() {
+        const f = document.getElementById('mform').value;
+        const l = document.getElementById('mlbl');
+        const i = document.getElementById('mconc');
+        if(f==='tablet'){ l.innerText="Tablet Strength (mg/tab)"; i.placeholder="50"; }
+        else if(f==='percent'){ l.innerText="Drug Percentage (%)"; i.placeholder="2"; }
+        else { l.innerText="Drug Concentration (mg/mL)"; i.placeholder="10"; }
+    }
+    function calcMeds() {
+        const w = parseFloat(document.getElementById('mw').value);
+        const dr = parseFloat(document.getElementById('mdr').value);
+        let c = parseFloat(document.getElementById('mconc').value);
+        const f = document.getElementById('mform').value;
+        if(!w || !dr || !c){ alert("Fill all metrics"); return; }
         
-        let breakdownHTML = `<strong>Verification Math:</strong><br>`;
-        if (percentExplanation) {
-            breakdownHTML += percentExplanation;
-        }
-        breakdownHTML += `${weight} kg × ${doseRate} mg/kg = ${roundedMg} mg total.<br>`;
+        const totalMg = w * dr; let amt = 0; let u = " mL"; let pExp = "";
+        if(f==='percent'){ let orig = c; c = c * 10; pExp = `Converted ${orig}% to ${c} mg/mL.<br>`; amt = totalMg / c; }
+        else if(f==='mg_ml'){ amt = totalMg / c; }
+        else { amt = totalMg / c; u = " Tablets"; }
         
-        if (form === 'tablet') {
-            breakdownHTML += `${roundedMg} mg ÷ ${strengthInput} mg/tab = ${roundedAmount}${unit}.`;
+        document.getElementById('out-meds').innerText = `${(Math.round(amt*100)/100)}${u} (${(Math.round(totalMg*100)/100)} mg total)`;
+        document.getElementById('break-meds').innerHTML = `<strong>Proof:</strong><br>${pExp}${w}kg × ${dr}mg/kg = ${totalMg.toFixed(2)}mg total.<br>${totalMg.toFixed(2)}mg ÷ ${c}${f==='tablet'?'mg/tab':'mg/mL'} = ${(Math.round(amt*100)/100)}${u}.`;
+        document.getElementById('res-meds').style.display='block';
+    }
+
+    // --- PANEL 2: FLUIDS & CRI ENGINE ---
+    function autoFluidMaintenance() {
+        const w = parseFloat(document.getElementById('fw').value);
+        if(!w) return;
+        document.getElementById('fmaint').value = 2; // Default baseline target standard
+    }
+    function calcFluids() {
+        const w = parseFloat(document.getElementById('fw').value);
+        const maintRate = parseFloat(document.getElementById('fmaint').value);
+        const pct = parseFloat(document.getElementById('fdehyd').value) || 0;
+        const hr = parseFloat(document.getElementById('fhours').value) || 24;
+        
+        if(!w){ alert("Weight required"); return; }
+        
+        // Fluids calculations
+        const maintVolPerHour = w * maintRate;
+        const deficitTotalVol = (pct / 100) * w * 1000;
+        const deficitPerHour = deficitTotalVol / hr;
+        const totalFluidRatePerHour = maintVolPerHour + deficitPerHour;
+        
+        let outStr = `• Total IV Pump Rate: ${totalFluidRatePerHour.toFixed(1)} mL/hour<br>`;
+        let proofStr = `<strong>Fluid Plan Breakdowns:</strong><br>Maintenance: ${w}kg × ${maintRate}mL/kg/hr = ${maintVolPerHour.toFixed(1)} mL/hr.<br>`;
+        if(pct > 0) {
+            proofStr += `Deficit: (${pct}% × ${w}kg) = ${deficitTotalVol}mL replacement across ${hr}hrs (${deficitPerHour.toFixed(1)} mL/hr).<br>`;
+        }
+
+        // Optional CRI Drip calculation implementation
+        const criDose = parseFloat(document.getElementById('fcri_dose').value);
+        const criConc = parseFloat(document.getElementById('fcri_conc').value);
+        const bagVol = parseFloat(document.getElementById('fbag').value);
+
+        if(criDose && criConc && bagVol) {
+            const mgPerHour = w * criDose;
+            const hoursPerBag = bagVol / totalFluidRatePerHour;
+            const totalMgNeededInBag = mgPerHour * hoursPerBag;
+            const mlDrugToInjectInBag = totalMgNeededInBag / criConc;
+            
+            outStr += `<span style="color:#c53030;">• CRI Injection: Add ${mlDrugToInjectInBag.toFixed(2)} mL of drug into a ${bagVol}mL fluid bag.</span>`;
+            proofStr += `<br><strong>CRI Calculation Verification:</strong><br>Patient requires ${mgPerHour.toFixed(2)} mg of drug per hour.<br>At current pump rate, bag lasts ${hoursPerBag.toFixed(1)} hours.<br>Total required in bag: ${totalMgNeededInBag.toFixed(2)} mg. Divided by ${criConc} mg/mL stock concentration = ${mlDrugToInjectInBag.toFixed(2)} mL.`;
+        }
+        
+        document.getElementById('out-fluids').innerHTML = outStr;
+        document.getElementById('break-fluids').innerHTML = proofStr;
+        document.getElementById('res-fluids').style.display='block';
+    }
+
+    // --- PANEL 3: DIETS ENGINE ---
+    function autoIdealWeight() {
+        const cw = parseFloat(document.getElementById('dcw').value);
+        const bcs = parseInt(document.getElementById('dbcs').value);
+        if(!cw) return;
+        let f = 1.0;
+        if(bcs===6) f=1.10; else if(bcs===7) f=1.20; else if(bcs===8) f=1.30; else if(bcs===9) f=1.40;
+        document.getElementById('dtw').value = (cw / f).toFixed(1);
+    }
+    function calcDiet() {
+        const s = document.getElementById('dspecies').value;
+        const d = document.getElementById('ddiet').value;
+        const cw = parseFloat(document.getElementById('dcw').value);
+        const tw = parseFloat(document.getElementById('dtw').value);
+        if(!cw || !tw){ alert("Missing weights"); return; }
+        
+        let g = 0; let b = ""; let col = "#000"; let name = "";
+        if(d==='hills'){ col="#111a3a"; name="Hill's Metabolic"; if(s==='dog'){ if(tw<=5) g=15*tw; else if(tw<=10) g=75+(tw-5)*10; else g=125+(tw-10)*8.5; } else { g=13*tw+6; } b=`Using direct target linear scaling variables.`; }
+        else if(d==='purina'){ col="#2c70b9"; name="Purina OM"; if(s==='dog'){ g = (70 * Math.pow(cw, 0.75)) / 3.1; } else { if(cw<=4) g=55; else if(cw<=5) g=70; else g=85; } b=`Based on energy restriction indexes directly targeting current structural fat mass index.`; }
+        else { col="#d62222"; name="Royal Canin Satiety"; if(s==='dog') { g = (70 * Math.pow(tw,0.75) * 1.2) / 2.9; } else { g = (53 * Math.pow(tw,0.711)) / 2.9; } b=`Calculated through metabolic exponent formulas to maximize lean tissues preservation.`; }
+        
+        const badge = document.getElementById('badge-diet'); badge.style.backgroundColor=col; badge.innerText=name;
+        document.getElementById('out-diets').innerText = `${Math.round(g)} grams / day`;
+        document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>${b}<br><br>Targeting ideal weight of ${tw}kg. Monitor weight trajectory weekly.`;
+        document.getElementById('res-diets').style.display='block';
+    }
+
+    // --- PANEL 4: EMERGENCY MEDICAL SHEET & TOX ---
+    function runCrash() {
+        const w = parseFloat(document.getElementById('cw').value);
+        if(!w || w<=0){ document.getElementById('cc-adr').innerText="0.00 mL"; document.getElementById('cc-atr').innerText="0.00 mL"; document.getElementById('cc-tub').innerText="ID: — mm"; return; }
+        
+        // RECOVER formulas (Adrenaline 0.01mg/kg of 1mg/mL | Atropine 0.04mg/kg of 0.6mg/mL)
+        document.getElementById('cc-adr').innerText = ((w * 0.01) / 1).toFixed(2) + " mL";
+        document.getElementById('cc-atr').innerText = ((w * 0.04) / 0.6).toFixed(2) + " mL";
+        
+        let t = "4.0 - 5.0";
+        if(w>4 && w<=9) t="5.5 - 6.5"; else if(w>9 && w<=15) t="7.0 - 8.0"; else if(w>15 && w<=25) t="8.5 - 9.5"; else if(w>25) t="10.0 - 12.0+";
+        document.getElementById('cc-tub').innerText = "ID: " + t + " mm";
+    }
+    function calcTox() {
+        const w = parseFloat(document.getElementById('cw').value);
+        const f = parseFloat(document.getElementById('ct').value);
+        const g = parseFloat(document.getElementById('cg').value);
+        if(!w || !g){ alert("Enter patient weight and chocolate grams consumed."); return; }
+        
+        const toxicityMgPerKg = (g * f) / w;
+        const b = document.getElementById('banner-tox');
+        const o = document.getElementById('out-tox');
+        
+        if(toxicityMgPerKg < 20) {
+            b.style.background="#f0fff4"; b.style.color="#22543d"; b.innerText="✅ BELOW TOXIC LIMIT";
+            o.innerHTML = `Calculated dose is ${toxicityMgPerKg.toFixed(1)} mg/kg.<br>Sub-clinical range. Theobromine is below risk profile. Monitor at home safely.`;
+        } else if(toxicityMgPerKg >= 20 && toxicityMgPerKg < 40) {
+            b.style.background="#feebc8"; b.style.color="#c05621"; b.innerText="⚠️ MILD TOXIC RISK";
+            o.innerHTML = `Calculated dose is <strong>${toxicityMgPerKg.toFixed(1)} mg/kg</strong>.<br>Potential risk for GI signs and mild tachycardia. Action: Safely induce emesis at the clinic if ingestion was within 2 hours.`;
         } else {
-            breakdownHTML += `${roundedMg} mg ÷ ${workingMgPerMl} mg/mL = ${roundedAmount}${unit}.`;
+            b.style.background="#fff5f5"; b.style.color="#742a2a"; b.innerText="🚨 HIGH CRITICAL TOXICITY";
+            o.innerHTML = `Calculated dose is <strong>${toxicityMgPerKg.toFixed(1)} mg/kg</strong>.<br>Significant risk for tremors, severe arrhythmias, and seizures. Action: Admit immediately, perform gastric lavage/activate charcoal, and initiate supportive IV fluid therapy immediately.`;
         }
-
-        document.getElementById('mathBreakdown').innerHTML = breakdownHTML;
-        document.getElementById('result').style.display = 'block';
+        document.getElementById('res-tox').style.display='block';
     }
 </script>
 
