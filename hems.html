@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIOWAA HEMS Critical Care Suite</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #1a202c; color: #e2e8f0; padding: 10px; margin: 0; }
+        .wrapper { max-width: 480px; margin: 0 auto; }
+        
+        /* Navigation Dock */
+        .master-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #2d3748; padding: 6px; border-radius: 12px; margin-bottom: 12px; }
+        .nav-btn { background: none; border: none; color: #a0aec0; padding: 8px 1px; font-size: 0.7rem; font-weight: bold; cursor: pointer; text-align: center; border-radius: 8px; }
+        .nav-btn span { display: block; font-size: 1.1rem; margin-bottom: 2px; }
+        .nav-btn.active { background: #3182ce; color: white; }
+        .nav-btn.danger-tab.active { background: #e53e3e; }
+
+        .card { background: #2d3748; padding: 18px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        
+        h2 { margin-top: 0; font-size: 1.2rem; text-align: center; padding-bottom: 8px; border-bottom: 2px solid #4a5568; }
+        .blue-title { color: #63b3ed; }
+        .red-title { color: #fc8181; }
+        .orange-title { color: #fbd38d; }
+        .purple-title { color: #b794f4; }
+        .green-title { color: #68d391; }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e0; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #4a5568; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: #1a202c; color: white; }
+        
+        button.calc-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .blue-btn { background-color: #3182ce; } .blue-btn:active { background-color: #2b6cb0; }
+        .red-btn { background-color: #e53e3e; } .red-btn:active { background-color: #c53030; }
+        .orange-btn { background-color: #dd6b20; } .orange-btn:active { background-color: #c05621; }
+        .purple-btn { background-color: #805ad5; } .purple-btn:active { background-color: #6b46c1; }
+
+        .result-box { display: none; margin-top: 15px; padding: 12px; border-radius: 6px; }
+        .blue-box { background-color: #2b6cb0; border-left: 4px solid #63b3ed; color: white; }
+        .red-box { background-color: #9b2c2c; border-left: 4px solid #fc8181; color: white; }
+        .orange-box { background-color: #7b341e; border-left: 4px solid #fbd38d; color: white; }
+        .purple-box { background-color: #44337a; border-left: 4px solid #b794f4; color: white; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
+        .result-table th, .result-table td { padding: 6px; border-bottom: 1px solid #4a5568; text-align: left; }
+        .result-table th { background-color: #1a202c; color: #cbd5e0; }
+
+        /* GCS grid */
+        .gcs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+        .gcs-btn { background: #1a202c; border: 1px solid #4a5568; color: #cbd5e0; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .gcs-btn.selected { background: #3182ce; color: white; border-color: #63b3ed; }
+
+        .warning-text { font-size: 0.7rem; color: #718096; text-align: center; margin-top: 15px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <!-- Navigation -->
+    <nav class="master-nav">
+        <button class="nav-btn active" onclick="switchPanel('peds')"><span>👶</span>Peds</button>
+        <button class="nav-btn" onclick="switchPanel('rsi')"><span>🫁</span>RSI</button>
+        <button class="nav-btn" onclick="switchPanel('burns')"><span>🔥</span>Burns</button>
+        <button class="nav-btn" onclick="switchPanel('blood')"><span>🩸</span>Trauma</button>
+        <button class="nav-btn danger-tab" onclick="switchPanel('gcs')"><span>🧠</span>GCS</button>
+    </nav>
+
+    <div class="card">
+        <!-- PANEL 1: PEDIATRIC RESUSCITATION MATRIX -->
+        <div id="panel-peds" class="panel active">
+            <h2 class="blue-title">👶 Pediatric Emergency Matrix</h2>
+            <div class="input-group">
+                <label>Age Selector (Auto-calculates Weight)</label>
+                <select id="pedAge" onchange="autoPedWeight()">
+                    <option value="0">Term Newborn (3.5 kg)</option>
+                    <option value="0.25">3 Months (6 kg)</option>
+                    <option value="0.5">6 Months (8 kg)</option>
+                    <option value="1">1 Year (10 kg)</option>
+                    <option value="2">2 Years (12 kg)</option>
+                    <option value="3">3 Years (14 kg)</option>
+                    <option value="4">4 Years (16 kg)</option>
+                    <option value="5">5 Years (18 kg)</option>
+                    <option value="6">6 Years (20 kg)</option>
+                    <option value="7">7 Years (22 kg)</option>
+                    <option value="8">8 Years (25 kg)</option>
+                    <option value="10">10 Years (33 kg)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Patient Weight (kg)</label>
+                <input type="number" id="pedWeight" value="10" step="0.5" oninput="calcPeds()">
+            </div>
+
+            <table class="result-table">
+                <thead><tr><th>Parameter / Drug</th><th>Dose / Target Spec</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Adrenaline 1:10,000</strong> (0.1 mg/mL)</td><td><span id="pOutAdr" style="color:#63b3ed; font-weight:bold;">1.00 mL</span> (10 mcg/kg)</td></tr>
+                    <tr><td><strong>Amiodarone</strong> (50 mg/mL)</td><td><span id="pOutAmio" style="font-weight:bold;">1.00 mL</span> (5 mg/kg)</td></tr>
+                    <tr><td><strong>Ketamine</strong> (10 mg/mL)</td><td><span id="pOutKet" style="font-weight:bold;">2.00 mL</span> (2 mg/kg)</td></tr>
+                    <tr><td><strong>Fentanyl</strong> (50 mcg/mL)</td><td><span id="pOutFen" style="font-weight:bold;">0.20 mL</span> (1 mcg/kg)</td></tr>
+                    <tr><td><strong>ET Tube (Uncuffed / Cuffed)</strong></td><td><span id="pOutTube" style="font-weight:bold;">4.0 / 3.5 mm ID</span></td></tr>
+                    <tr><td><strong>Defibrillation Energy (4 J/kg)</strong></td><td><span id="pOutJoules" style="color:#fbd38d; font-weight:bold;">40 Joules</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PANEL 2: RSI & EMERGENCY ANAESTHESIA -->
+        <div id="panel-rsi" class="panel">
+            <h2 class="purple-title">🫁 PHEM RSI Anaesthesia</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="rsiWeight" placeholder="e.g. 75"></div>
+            <div class="input-group">
+                <label>Hemodynamic Status Target</label>
+                <select id="rsiStatus">
+                    <option value="normo">Normotensive / Stable (Ketamine 2mg/kg, Roc 1.2mg/kg)</option>
+                    <option value="unstable">Hemodynamically Unstable (Ketamine 1mg/kg, Roc 1.2mg/kg)</option>
+                    <option value="shock">Profound Shock / Crashed (Ketamine 0.5mg/kg, Roc 1.5mg/kg)</option>
+                </select>
+            </div>
+            <button class="calc-btn purple-btn" onclick="calcRsi()">Calculate RSI Draw-Up</button>
+            <div id="res-rsi" class="result-box purple-box">
+                <div class="result-title">Dual-Signoff RSI Draw-up:</div>
+                <div id="out-rsi" style="font-size: 0.95rem; line-height: 1.5;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 3: BURNS & PARKLAND FORMULA -->
+        <div id="panel-burns" class="panel">
+            <h2 class="orange-title">🔥 Parkland Burn Resuscitation</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="burnWeight" placeholder="e.g. 70"></div>
+            <div class="input-group"><label>Estimated % TBSA Burn (Partial/Full Thickness)</label><input type="number" id="burnTbsa" placeholder="e.g. 25"></div>
+            <button class="calc-btn orange-btn" onclick="calcBurns()">Process Fluid Plan</button>
+            <div id="res-burns" class="result-box orange-box">
+                <div class="result-title">Parkland Fluid Allocation (Hartmann's):</div>
+                <div id="out-burns" style="font-size: 0.95rem; line-height: 1.5;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 4: MAJOR TRAUMA & TXA -->
+        <div id="panel-blood" class="panel">
+            <h2 class="red-title">🩸 Major Trauma & TXA Protocol</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="txaWeight" placeholder="e.g. 80"></div>
+            <div class="input-group">
+                <label>Age Bracket</label>
+                <select id="txaAge">
+                    <option value="adult">Adult (Standard 1g Bolus + 1g Infusion)</option>
+                    <option value="child">Pediatric (< 12 Years: 15 mg/kg Bolus)</option>
+                </select>
+            </div>
+            <button class="calc-btn red-btn" onclick="calcTxa()">Calculate TXA & MHP Doses</button>
+            <div id="res-blood" class="result-box red-box">
+                <div class="result-title">TXA & Transfusion Parameters:</div>
+                <div id="out-blood" style="font-size: 0.95rem; line-height: 1.5;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 5: GLASGOW COMA SCALE & TRIAGE -->
+        <div id="panel-gcs" class="panel">
+            <h2 class="red-title">🧠 Glasgow Coma Scale (GCS)</h2>
+            <label>Eyes Open (E)</label>
+            <div class="gcs-grid">
+                <button class="gcs-btn" onclick="setGcs('e',4,this)">4: Spontaneous</button>
+                <button class="gcs-btn" onclick="setGcs('e',3,this)">3: To Sound</button>
+                <button class="gcs-btn" onclick="setGcs('e',2,this)">2: To Pressure</button>
+                <button class="gcs-btn" onclick="setGcs('e',1,this)">1: None</button>
+            </div>
+
+            <label>Verbal Response (V)</label>
+            <div class="gcs-grid">
+                <button class="gcs-btn" onclick="setGcs('v',5,this)">5: Oriented</button>
+                <button class="gcs-btn" onclick="setGcs('v',4,this)">4: Confused</button>
+                <button class="gcs-btn" onclick="setGcs('v',3,this)">3: Words</button>
+                <button class="gcs-btn" onclick="setGcs('v',2,this)">2: Sounds</button>
+                <button class="gcs-btn" onclick="setGcs('v',1,this)">1: None</button>
+            </div>
+
+            <label>Motor Response (M)</label>
+            <div class="gcs-grid">
+                <button class="gcs-btn" onclick="setGcs('m',6,this)">6: Obeys</button>
+                <button class="gcs-btn" onclick="setGcs('m',5,this)">5: Localises</button>
+                <button class="gcs-btn" onclick="setGcs('m',4,this)">4: Flex Normal</button>
+                <button class="gcs-btn" onclick="setGcs('m',3,this)">3: Flex Abnorm</button>
+                <button class="gcs-btn" onclick="setGcs('m',2,this)">2: Extension</button>
+                <button class="gcs-btn" onclick="setGcs('m',1,this)">1: None</button>
+            </div>
+
+            <div style="text-align:center; margin-top:15px; padding:10px; background:#1a202c; border-radius:8px;">
+                <div style="font-size:1.4rem; font-weight:bold; color:#fc8181;" id="gcsTotal">GCS: E4 V5 M6 = 15</div>
+                <div style="font-size:0.8rem; color:#a0aec0; margin-top:4px;" id="gcsMtc">Major Trauma Centre Triage: Standard Protocol</div>
+            </div>
+        </div>
+
+        <p class="warning-text">HIOWAA Pre-Hospital Emergency Medicine Reference Tool. Cross-verify with SCAS / JCALC Guidelines.</p>
+    </div>
+</div>
+
+<script>
+    function switchPanel(panelId) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('panel-' + panelId).classList.add('active');
+    }
+
+    // --- PEDIATRIC MATRIX ---
+    function autoPedWeight() {
+        const age = parseFloat(document.getElementById('pedAge').value);
+        let w = 10;
+        if(age === 0) w = 3.5;
+        else if(age === 0.25) w = 6;
+        else if(age === 0.5) w = 8;
+        else if(age <= 5) w = (age * 2) + 8;
+        else w = (age * 3) + 7;
+        
+        document.getElementById('pedWeight').value = w;
+        calcPeds();
+    }
+
+    function calcPeds() {
+        const w = parseFloat(document.getElementById('pedWeight').value);
+        if(!w || w <= 0) return;
+
+        // Adrenaline 1:10,000 (0.1mg/mL) -> 10mcg/kg = 0.1 mL/kg
+        const adrMl = w * 0.1;
+        // Amiodarone (50mg/mL) -> 5mg/kg
+        const amioMl = (w * 5) / 50;
+        // Ketamine (10mg/mL stock dilution) -> 2mg/kg
+        const ketMl = (w * 2) / 10;
+        // Fentanyl (50mcg/mL) -> 1mcg/kg
+        const fenMl = (w * 1) / 50;
+
+        // ET Tube estimation
+        const ageVal = parseFloat(document.getElementById('pedAge').value);
+        let uncuffed = (ageVal / 4) + 4;
+        let cuffed = (ageVal / 4) + 3.5;
+        if(ageVal === 0) { uncuffed = 3.5; cuffed = 3.0; }
+
+        document.getElementById('pOutAdr').innerText = adrMl.toFixed(2) + " mL";
+        document.getElementById('pOutAmio').innerText = amioMl.toFixed(2) + " mL";
+        document.getElementById('pOutKet').innerText = ketMl.toFixed(2) + " mL";
+        document.getElementById('pOutFen').innerText = fenMl.toFixed(2) + " mL";
+        document.getElementById('pOutTube').innerText = `${uncuffed.toFixed(1)} / ${cuffed.toFixed(1)} mm ID`;
+        document.getElementById('pOutJoules').innerText = Math.round(w * 4) + " Joules";
+    }
+
+    // --- RSI ENGINE ---
+    function calcRsi() {
+        const w = parseFloat(document.getElementById('rsiWeight').value);
+        const status = document.getElementById('rsiStatus').value;
+        if(!w) { alert("Please enter weight"); return; }
+
+        let ketRate = 2.0; let rocRate = 1.2;
+        if(status === 'unstable') { ketRate = 1.0; rocRate = 1.2; }
+        if(status === 'shock') { ketRate = 0.5; rocRate = 1.5; }
+
+        const ketMg = w * ketRate;
+        const ketMl = ketMg / 10; // Assuming 10mg/mL concentration
+        const rocMg = w * rocRate;
+        const rocMl = rocMg / 10; // Assuming 10mg/mL stock Rocuronium
+
+        document.getElementById('out-rsi').innerHTML = 
+            `• <strong>Ketamine (${ketRate} mg/kg):</strong> ${ketMg.toFixed(0)} mg = <strong>${ketMl.toFixed(1)} mL</strong> (10mg/mL stock)<br>` +
+            `• <strong>Rocuronium (${rocRate} mg/kg):</strong> ${rocMg.toFixed(0)} mg = <strong>${rocMl.toFixed(1)} mL</strong> (10mg/mL stock)<br>` +
+            `<br><small>Post-Intubation Sedation: Fentanyl + Midazolam/Propofol titrated to target MAP.</small>`;
+        document.getElementById('res-rsi').style.display = 'block';
+    }
+
+    // --- PARKLAND BURNS ENGINE ---
+    function calcBurns() {
+        const w = parseFloat(document.getElementById('burnWeight').value);
+        const tbsa = parseFloat(document.getElementById('burnTbsa').value);
+        if(!w || !tbsa) { alert("Enter weight and TBSA"); return; }
+
+        // Parkland Formula: 4mL x kg x %TBSA
+        const totalFluids24h = 4 * w * tbsa;
+        const first8hVol = totalFluids24h / 2;
+        const next16hVol = totalFluids24h / 2;
+
+        const rateFirst8h = first8hVol / 8;
+        const rateNext16h = next16hVol / 16;
+
+        document.getElementById('out-burns').innerHTML = 
+            `• <strong>Total 24h Crystalloid (Hartmann's):</strong> ${Math.round(totalFluids24h)} mL<br>` +
+            `• <strong>First 8 Hours:</strong> ${Math.round(first8hVol)} mL (${Math.round(rateFirst8h)} mL/hr)<br>` +
+            `• <strong>Next 16 Hours:</strong> ${Math.round(next16hVol)} mL (${Math.round(rateNext16h)} mL/hr)`;
+        document.getElementById('res-burns').style.display = 'block';
+    }
+
+    // --- TXA & TRAUMA ENGINE ---
+    function calcTxa() {
+        const w = parseFloat(document.getElementById('txaWeight').value);
+        const ageGroup = document.getElementById('txaAge').value;
+        if(!w) { alert("Enter weight"); return; }
+
+        let txaStr = "";
+        if(ageGroup === 'adult') {
+            txaStr = `• <strong>Tranexamic Acid (TXA):</strong> 1g IV Bolus over 10 mins, followed by 1g IV infusion over 8 hours.`;
+        } else {
+            const pedDose = Math.min(w * 15, 1000);
+            txaStr = `• <strong>Pediatric TXA (15 mg/kg):</strong> ${Math.round(pedDose)} mg IV slow bolus over 10 minutes.`;
+        }
+
+        document.getElementById('out-blood').innerHTML = 
+            `${txaStr}<br><br>` +
+            `• <strong>Major Hemorrhage Protocol Target:</strong> Administer PRBC and FFP in a 1:1 ratio. Titrate to permissive hypotension (Radial pulse present / SBP ~80-90 mmHg).`;
+        document.getElementById('res-blood').style.display = 'block';
+    }
+
+    // --- GCS INTERACTIVE ENGINE ---
+    let gcsScores = { e: 4, v: 5, m: 6 };
+    function setGcs(type, val, btn) {
+        gcsScores[type] = val;
+        // Visual selection handling
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.gcs-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        const total = gcsScores.e + gcsScores.v + gcsScores.m;
+        document.getElementById('gcsTotal').innerText = `GCS: E${gcsScores.e} V${gcsScores.v} M${gcsScores.m} = ${total}`;
+        
+        const mtcBox = document.getElementById('gcsMtc');
+        if(total <= 12 || gcsScores.m <= 5) {
+            mtcBox.innerText = "🚨 MAJOR TRAUMA CENTRE (MTC) CRITERIA MET (GCS ≤12 / Motor ≤5)";
+            mtcBox.style.color = "#fc8181";
+            mtcBox.style.fontWeight = "bold";
+        } else {
+            mtcBox.innerText = "Major Trauma Centre Triage: Standard Protocol";
+            mtcBox.style.color = "#a0aec0";
+            mtcBox.style.fontWeight = "normal";
+        }
+    }
+
+    // Run initial ped calc on page load
+    calcPeds();
+</script>
+
+</body>
+</html>
