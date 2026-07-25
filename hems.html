@@ -6,12 +6,12 @@
     <title>HIOWAA HEMS Critical Care Suite</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #1a202c; color: #e2e8f0; padding: 10px; margin: 0; }
-        .wrapper { max-width: 480px; margin: 0 auto; }
+        .wrapper { max-width: 500px; margin: 0 auto; }
         
         /* Navigation Dock */
         .master-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #2d3748; padding: 6px; border-radius: 12px; margin-bottom: 12px; }
-        .nav-btn { background: none; border: none; color: #a0aec0; padding: 8px 1px; font-size: 0.7rem; font-weight: bold; cursor: pointer; text-align: center; border-radius: 8px; }
-        .nav-btn span { display: block; font-size: 1.1rem; margin-bottom: 2px; }
+        .nav-btn { background: none; border: none; color: #a0aec0; padding: 6px 1px; font-size: 0.65rem; font-weight: bold; cursor: pointer; text-align: center; border-radius: 6px; }
+        .nav-btn span { display: block; font-size: 1rem; margin-bottom: 1px; }
         .nav-btn.active { background: #3182ce; color: white; }
         .nav-btn.danger-tab.active { background: #e53e3e; }
 
@@ -19,39 +19,43 @@
         .panel { display: none; }
         .panel.active { display: block; }
         
-        h2 { margin-top: 0; font-size: 1.2rem; text-align: center; padding-bottom: 8px; border-bottom: 2px solid #4a5568; }
+        h2 { margin-top: 0; font-size: 1.15rem; text-align: center; padding-bottom: 8px; border-bottom: 2px solid #4a5568; }
         .blue-title { color: #63b3ed; }
         .red-title { color: #fc8181; }
         .orange-title { color: #fbd38d; }
         .purple-title { color: #b794f4; }
+        .teal-title { color: #4fd1c5; }
         .green-title { color: #68d391; }
 
-        .input-group { margin-bottom: 12px; }
-        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e0; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #4a5568; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: #1a202c; color: white; }
+        .input-group { margin-bottom: 10px; }
+        label { display: block; font-weight: 600; margin-bottom: 3px; font-size: 0.8rem; color: #cbd5e0; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #4a5568; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; background: #1a202c; color: white; }
         
-        button.calc-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        button.calc-btn { width: 100%; padding: 10px; color: white; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 6px; }
         .blue-btn { background-color: #3182ce; } .blue-btn:active { background-color: #2b6cb0; }
         .red-btn { background-color: #e53e3e; } .red-btn:active { background-color: #c53030; }
         .orange-btn { background-color: #dd6b20; } .orange-btn:active { background-color: #c05621; }
         .purple-btn { background-color: #805ad5; } .purple-btn:active { background-color: #6b46c1; }
+        .teal-btn { background-color: #319795; } .teal-btn:active { background-color: #2c7a7b; }
+        .green-btn { background-color: #38a169; } .green-btn:active { background-color: #2f855a; }
 
-        .result-box { display: none; margin-top: 15px; padding: 12px; border-radius: 6px; }
+        .result-box { display: none; margin-top: 12px; padding: 12px; border-radius: 6px; }
         .blue-box { background-color: #2b6cb0; border-left: 4px solid #63b3ed; color: white; }
         .red-box { background-color: #9b2c2c; border-left: 4px solid #fc8181; color: white; }
         .orange-box { background-color: #7b341e; border-left: 4px solid #fbd38d; color: white; }
         .purple-box { background-color: #44337a; border-left: 4px solid #b794f4; color: white; }
+        .teal-box { background-color: #234e52; border-left: 4px solid #4fd1c5; color: white; }
+        .green-box { background-color: #1c4524; border-left: 4px solid #68d391; color: white; }
         
         .result-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
         .result-table th, .result-table td { padding: 6px; border-bottom: 1px solid #4a5568; text-align: left; }
         .result-table th { background-color: #1a202c; color: #cbd5e0; }
 
-        /* GCS grid */
-        .gcs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
-        .gcs-btn { background: #1a202c; border: 1px solid #4a5568; color: #cbd5e0; padding: 8px 4px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .gcs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; }
+        .gcs-btn { background: #1a202c; border: 1px solid #4a5568; color: #cbd5e0; padding: 6px 2px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; text-align: center; }
         .gcs-btn.selected { background: #3182ce; color: white; border-color: #63b3ed; }
 
-        .warning-text { font-size: 0.7rem; color: #718096; text-align: center; margin-top: 15px; font-style: italic; }
+        .warning-text { font-size: 0.7rem; color: #718096; text-align: center; margin-top: 12px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -61,8 +65,12 @@
     <nav class="master-nav">
         <button class="nav-btn active" onclick="switchPanel('peds')"><span>👶</span>Peds</button>
         <button class="nav-btn" onclick="switchPanel('rsi')"><span>🫁</span>RSI</button>
+        <button class="nav-btn" onclick="switchPanel('vent')"><span>🫁</span>Vent</button>
+        <button class="nav-btn" onclick="switchPanel('pressor')"><span>💉</span>Inotrope</button>
         <button class="nav-btn" onclick="switchPanel('burns')"><span>🔥</span>Burns</button>
         <button class="nav-btn" onclick="switchPanel('blood')"><span>🩸</span>Trauma</button>
+        <button class="nav-btn" onclick="switchPanel('last')"><span>⚡</span>LAST</button>
+        <button class="nav-btn" onclick="switchPanel('sed')"><span>💤</span>Sedate</button>
         <button class="nav-btn danger-tab" onclick="switchPanel('gcs')"><span>🧠</span>GCS</button>
     </nav>
 
@@ -105,7 +113,7 @@
             </table>
         </div>
 
-        <!-- PANEL 2: RSI & EMERGENCY ANAESTHESIA -->
+        <!-- PANEL 2: RSI ANAESTHESIA -->
         <div id="panel-rsi" class="panel">
             <h2 class="purple-title">🫁 PHEM RSI Anaesthesia</h2>
             <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="rsiWeight" placeholder="e.g. 75"></div>
@@ -120,23 +128,54 @@
             <button class="calc-btn purple-btn" onclick="calcRsi()">Calculate RSI Draw-Up</button>
             <div id="res-rsi" class="result-box purple-box">
                 <div class="result-title">Dual-Signoff RSI Draw-up:</div>
-                <div id="out-rsi" style="font-size: 0.95rem; line-height: 1.5;"></div>
+                <div id="out-rsi" style="font-size: 0.9rem; line-height: 1.4;"></div>
             </div>
         </div>
 
-        <!-- PANEL 3: BURNS & PARKLAND FORMULA -->
+        <!-- PANEL 3: VENTILATOR IBW -->
+        <div id="panel-vent" class="panel">
+            <h2 class="teal-title">🫁 Ventilator Ideal Body Weight (IBW)</h2>
+            <div class="input-group"><label>Biological Sex</label><select id="vSex"><option value="m">Male</option><option value="f">Female</option></select></div>
+            <div class="input-group"><label>Patient Height (cm)</label><input type="number" id="vHeight" placeholder="e.g. 175"></div>
+            <button class="calc-btn teal-btn" onclick="calcVent()">Calculate Lung Targets</button>
+            <div id="res-vent" class="result-box teal-box">
+                <div class="result-title">Ventilator Tidal Volume Parameters:</div>
+                <div id="out-vent" style="font-size: 0.9rem; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 4: INOTROPES & PRESSORS -->
+        <div id="panel-pressor" class="panel">
+            <h2 class="teal-title">💉 Inotrope & Vasoactive Drivers</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="pressWeight" placeholder="e.g. 70"></div>
+            <div class="input-group">
+                <label>Vasoactive Drug Protocol</label>
+                <select id="pressType">
+                    <option value="norad">Noradrenaline (4mg in 50mL = 80mcg/mL)</option>
+                    <option value="adrenal">Adrenaline (4mg in 50mL = 80mcg/mL)</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Target Dose Rate (mcg/kg/min)</label><input type="number" id="pressDose" step="0.01" value="0.05" placeholder="e.g. 0.05"></div>
+            <button class="calc-btn teal-btn" onclick="calcPressor()">Calculate Pump Rate</button>
+            <div id="res-pressor" class="result-box teal-box">
+                <div class="result-title">Syringe Driver Pump Setting:</div>
+                <div id="out-pressor" style="font-size: 0.9rem; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 5: PARKLAND BURNS -->
         <div id="panel-burns" class="panel">
             <h2 class="orange-title">🔥 Parkland Burn Resuscitation</h2>
             <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="burnWeight" placeholder="e.g. 70"></div>
-            <div class="input-group"><label>Estimated % TBSA Burn (Partial/Full Thickness)</label><input type="number" id="burnTbsa" placeholder="e.g. 25"></div>
+            <div class="input-group"><label>Estimated % TBSA Burn (Partial/Full)</label><input type="number" id="burnTbsa" placeholder="e.g. 25"></div>
             <button class="calc-btn orange-btn" onclick="calcBurns()">Process Fluid Plan</button>
             <div id="res-burns" class="result-box orange-box">
                 <div class="result-title">Parkland Fluid Allocation (Hartmann's):</div>
-                <div id="out-burns" style="font-size: 0.95rem; line-height: 1.5;"></div>
+                <div id="out-burns" style="font-size: 0.9rem; line-height: 1.4;"></div>
             </div>
         </div>
 
-        <!-- PANEL 4: MAJOR TRAUMA & TXA -->
+        <!-- PANEL 6: MAJOR TRAUMA & TXA -->
         <div id="panel-blood" class="panel">
             <h2 class="red-title">🩸 Major Trauma & TXA Protocol</h2>
             <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="txaWeight" placeholder="e.g. 80"></div>
@@ -147,21 +186,43 @@
                     <option value="child">Pediatric (< 12 Years: 15 mg/kg Bolus)</option>
                 </select>
             </div>
-            <button class="calc-btn red-btn" onclick="calcTxa()">Calculate TXA & MHP Doses</button>
+            <button class="calc-btn red-btn" onclick="calcTxa()">Calculate TXA & Transfusion</button>
             <div id="res-blood" class="result-box red-box">
                 <div class="result-title">TXA & Transfusion Parameters:</div>
-                <div id="out-blood" style="font-size: 0.95rem; line-height: 1.5;"></div>
+                <div id="out-blood" style="font-size: 0.9rem; line-height: 1.4;"></div>
             </div>
         </div>
 
-        <!-- PANEL 5: GLASGOW COMA SCALE & TRIAGE -->
+        <!-- PANEL 7: LAST & INTRALIPID -->
+        <div id="panel-last" class="panel">
+            <h2 class="orange-title">⚡ LAST Toxicity & Intralipid</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="lastWeight" placeholder="e.g. 75"></div>
+            <button class="calc-btn orange-btn" onclick="calcLast()">Calculate Safe Limits & Rescue</button>
+            <div id="res-last" class="result-box orange-box">
+                <div class="result-title">Fascia Iliaca & Intralipid Protocols:</div>
+                <div id="out-last" style="font-size: 0.9rem; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 8: PROCEDURAL SEDATION -->
+        <div id="panel-sed" class="panel">
+            <h2 class="green-title">💤 Procedural Sedation Guide</h2>
+            <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="sedWeight" placeholder="e.g. 80"></div>
+            <button class="calc-btn green-btn" onclick="calcSed()">Calculate Sedation Boluses</button>
+            <div id="res-sed" class="result-box green-box">
+                <div class="result-title">Titrated Bolus Dosing:</div>
+                <div id="out-sed" style="font-size: 0.9rem; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 9: GCS & TRIAGE -->
         <div id="panel-gcs" class="panel">
             <h2 class="red-title">🧠 Glasgow Coma Scale (GCS)</h2>
             <label>Eyes Open (E)</label>
             <div class="gcs-grid">
                 <button class="gcs-btn" onclick="setGcs('e',4,this)">4: Spontaneous</button>
-                <button class="gcs-btn" onclick="setGcs('e',3,this)">3: To Sound</button>
-                <button class="gcs-btn" onclick="setGcs('e',2,this)">2: To Pressure</button>
+                <button class="gcs-btn" onclick="setGcs('e',3,this)">3: Sound</button>
+                <button class="gcs-btn" onclick="setGcs('e',2,this)">2: Pressure</button>
                 <button class="gcs-btn" onclick="setGcs('e',1,this)">1: None</button>
             </div>
 
@@ -178,15 +239,15 @@
             <div class="gcs-grid">
                 <button class="gcs-btn" onclick="setGcs('m',6,this)">6: Obeys</button>
                 <button class="gcs-btn" onclick="setGcs('m',5,this)">5: Localises</button>
-                <button class="gcs-btn" onclick="setGcs('m',4,this)">4: Flex Normal</button>
+                <button class="gcs-btn" onclick="setGcs('m',4,this)">4: Flex Norm</button>
                 <button class="gcs-btn" onclick="setGcs('m',3,this)">3: Flex Abnorm</button>
                 <button class="gcs-btn" onclick="setGcs('m',2,this)">2: Extension</button>
                 <button class="gcs-btn" onclick="setGcs('m',1,this)">1: None</button>
             </div>
 
-            <div style="text-align:center; margin-top:15px; padding:10px; background:#1a202c; border-radius:8px;">
-                <div style="font-size:1.4rem; font-weight:bold; color:#fc8181;" id="gcsTotal">GCS: E4 V5 M6 = 15</div>
-                <div style="font-size:0.8rem; color:#a0aec0; margin-top:4px;" id="gcsMtc">Major Trauma Centre Triage: Standard Protocol</div>
+            <div style="text-align:center; margin-top:12px; padding:8px; background:#1a202c; border-radius:8px;">
+                <div style="font-size:1.3rem; font-weight:bold; color:#fc8181;" id="gcsTotal">GCS: E4 V5 M6 = 15</div>
+                <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;" id="gcsMtc">Major Trauma Centre Triage: Standard Protocol</div>
             </div>
         </div>
 
@@ -211,34 +272,20 @@
         else if(age === 0.5) w = 8;
         else if(age <= 5) w = (age * 2) + 8;
         else w = (age * 3) + 7;
-        
         document.getElementById('pedWeight').value = w;
         calcPeds();
     }
-
     function calcPeds() {
         const w = parseFloat(document.getElementById('pedWeight').value);
         if(!w || w <= 0) return;
-
-        // Adrenaline 1:10,000 (0.1mg/mL) -> 10mcg/kg = 0.1 mL/kg
-        const adrMl = w * 0.1;
-        // Amiodarone (50mg/mL) -> 5mg/kg
-        const amioMl = (w * 5) / 50;
-        // Ketamine (10mg/mL stock dilution) -> 2mg/kg
-        const ketMl = (w * 2) / 10;
-        // Fentanyl (50mcg/mL) -> 1mcg/kg
-        const fenMl = (w * 1) / 50;
-
-        // ET Tube estimation
+        document.getElementById('pOutAdr').innerText = (w * 0.1).toFixed(2) + " mL";
+        document.getElementById('pOutAmio').innerText = ((w * 5) / 50).toFixed(2) + " mL";
+        document.getElementById('pOutKet').innerText = ((w * 2) / 10).toFixed(2) + " mL";
+        document.getElementById('pOutFen').innerText = ((w * 1) / 50).toFixed(2) + " mL";
+        
         const ageVal = parseFloat(document.getElementById('pedAge').value);
-        let uncuffed = (ageVal / 4) + 4;
-        let cuffed = (ageVal / 4) + 3.5;
+        let uncuffed = (ageVal / 4) + 4; let cuffed = (ageVal / 4) + 3.5;
         if(ageVal === 0) { uncuffed = 3.5; cuffed = 3.0; }
-
-        document.getElementById('pOutAdr').innerText = adrMl.toFixed(2) + " mL";
-        document.getElementById('pOutAmio').innerText = amioMl.toFixed(2) + " mL";
-        document.getElementById('pOutKet').innerText = ketMl.toFixed(2) + " mL";
-        document.getElementById('pOutFen').innerText = fenMl.toFixed(2) + " mL";
         document.getElementById('pOutTube').innerText = `${uncuffed.toFixed(1)} / ${cuffed.toFixed(1)} mm ID`;
         document.getElementById('pOutJoules').innerText = Math.round(w * 4) + " Joules";
     }
@@ -247,22 +294,58 @@
     function calcRsi() {
         const w = parseFloat(document.getElementById('rsiWeight').value);
         const status = document.getElementById('rsiStatus').value;
-        if(!w) { alert("Please enter weight"); return; }
+        if(!w) { alert("Enter weight"); return; }
+        let kRate = 2.0; let rRate = 1.2;
+        if(status === 'unstable') { kRate = 1.0; rRate = 1.2; }
+        if(status === 'shock') { kRate = 0.5; rRate = 1.5; }
 
-        let ketRate = 2.0; let rocRate = 1.2;
-        if(status === 'unstable') { ketRate = 1.0; rocRate = 1.2; }
-        if(status === 'shock') { ketRate = 0.5; rocRate = 1.5; }
-
-        const ketMg = w * ketRate;
-        const ketMl = ketMg / 10; // Assuming 10mg/mL concentration
-        const rocMg = w * rocRate;
-        const rocMl = rocMg / 10; // Assuming 10mg/mL stock Rocuronium
+        const kMg = w * kRate; const kMl = kMg / 10;
+        const rMg = w * rRate; const rMl = rMg / 10;
 
         document.getElementById('out-rsi').innerHTML = 
-            `• <strong>Ketamine (${ketRate} mg/kg):</strong> ${ketMg.toFixed(0)} mg = <strong>${ketMl.toFixed(1)} mL</strong> (10mg/mL stock)<br>` +
-            `• <strong>Rocuronium (${rocRate} mg/kg):</strong> ${rocMg.toFixed(0)} mg = <strong>${rocMl.toFixed(1)} mL</strong> (10mg/mL stock)<br>` +
-            `<br><small>Post-Intubation Sedation: Fentanyl + Midazolam/Propofol titrated to target MAP.</small>`;
+            `• <strong>Ketamine (${kRate} mg/kg):</strong> ${kMg.toFixed(0)} mg = <strong>${kMl.toFixed(1)} mL</strong> (10mg/mL)<br>` +
+            `• <strong>Rocuronium (${rRate} mg/kg):</strong> ${rMg.toFixed(0)} mg = <strong>${rMl.toFixed(1)} mL</strong> (10mg/mL)`;
         document.getElementById('res-rsi').style.display = 'block';
+    }
+
+    // --- VENTILATOR IBW ENGINE ---
+    function calcVent() {
+        const sex = document.getElementById('vSex').value;
+        const h = parseFloat(document.getElementById('vHeight').value);
+        if(!h) { alert("Enter height cm"); return; }
+
+        let ibw = 50 + 0.91 * (h - 152.4);
+        if(sex === 'f') ibw = 45.5 + 0.91 * (h - 152.4);
+        if(ibw < 10) ibw = 10;
+
+        const vt6 = Math.round(ibw * 6);
+        const vt8 = Math.round(ibw * 8);
+
+        document.getElementById('out-vent').innerHTML = 
+            `• <strong>Ideal Body Weight (IBW):</strong> ${ibw.toFixed(1)} kg<br>` +
+            `• <strong>Target $V_T$ 6 mL/kg (Protective):</strong> ${vt6} mL<br>` +
+            `• <strong>Target $V_T$ 8 mL/kg:</strong> ${vt8} mL<br>` +
+            `• <strong>Initial Resp Rate:</strong> 12 - 16 bpm (Titrate to $EtCO_2$ 4.5 - 5.0 kPa)`;
+        document.getElementById('res-vent').style.display = 'block';
+    }
+
+    // --- INOTROPE ENGINE ---
+    function calcPressor() {
+        const w = parseFloat(document.getElementById('pressWeight').value);
+        const dose = parseFloat(document.getElementById('pressDose').value);
+        if(!w || !dose) { alert("Enter weight and dose"); return; }
+
+        // Standard concentration: 4mg in 50mL = 80 mcg/mL
+        const concMcgPerMl = 80;
+        const mcgPerMin = w * dose;
+        const mcgPerHour = mcgPerMin * 60;
+        const mlPerHour = mcgPerHour / concMcgPerMl;
+
+        document.getElementById('out-pressor').innerHTML = 
+            `• <strong>Pump Rate:</strong> <strong>${mlPerHour.toFixed(1)} mL/hr</strong><br>` +
+            `• <strong>Target Dose:</strong> ${dose} mcg/kg/min (${mcgPerMin.toFixed(1)} mcg/min total)<br>` +
+            `<small>Stock Mix: 4 mg in 50 mL Glucose 5% (80 mcg/mL)</small>`;
+        document.getElementById('res-pressor').style.display = 'block';
     }
 
     // --- PARKLAND BURNS ENGINE ---
@@ -271,18 +354,13 @@
         const tbsa = parseFloat(document.getElementById('burnTbsa').value);
         if(!w || !tbsa) { alert("Enter weight and TBSA"); return; }
 
-        // Parkland Formula: 4mL x kg x %TBSA
-        const totalFluids24h = 4 * w * tbsa;
-        const first8hVol = totalFluids24h / 2;
-        const next16hVol = totalFluids24h / 2;
-
-        const rateFirst8h = first8hVol / 8;
-        const rateNext16h = next16hVol / 16;
+        const total24 = 4 * w * tbsa;
+        const h8 = total24 / 2; const h16 = total24 / 2;
 
         document.getElementById('out-burns').innerHTML = 
-            `• <strong>Total 24h Crystalloid (Hartmann's):</strong> ${Math.round(totalFluids24h)} mL<br>` +
-            `• <strong>First 8 Hours:</strong> ${Math.round(first8hVol)} mL (${Math.round(rateFirst8h)} mL/hr)<br>` +
-            `• <strong>Next 16 Hours:</strong> ${Math.round(next16hVol)} mL (${Math.round(rateNext16h)} mL/hr)`;
+            `• <strong>Total 24h Crystalloid:</strong> ${Math.round(total24)} mL<br>` +
+            `• <strong>First 8 Hours:</strong> ${Math.round(h8)} mL (${Math.round(h8 / 8)} mL/hr)<br>` +
+            `• <strong>Next 16 Hours:</strong> ${Math.round(h16)} mL (${Math.round(h16 / 16)} mL/hr)`;
         document.getElementById('res-burns').style.display = 'block';
     }
 
@@ -294,25 +372,61 @@
 
         let txaStr = "";
         if(ageGroup === 'adult') {
-            txaStr = `• <strong>Tranexamic Acid (TXA):</strong> 1g IV Bolus over 10 mins, followed by 1g IV infusion over 8 hours.`;
+            txaStr = `• <strong>TXA Dose:</strong> 1g IV Bolus over 10 mins, then 1g IV infusion over 8 hrs.`;
         } else {
-            const pedDose = Math.min(w * 15, 1000);
-            txaStr = `• <strong>Pediatric TXA (15 mg/kg):</strong> ${Math.round(pedDose)} mg IV slow bolus over 10 minutes.`;
+            const pDose = Math.min(w * 15, 1000);
+            txaStr = `• <strong>Pediatric TXA (15 mg/kg):</strong> ${Math.round(pDose)} mg IV slow bolus.`;
         }
 
         document.getElementById('out-blood').innerHTML = 
             `${txaStr}<br><br>` +
-            `• <strong>Major Hemorrhage Protocol Target:</strong> Administer PRBC and FFP in a 1:1 ratio. Titrate to permissive hypotension (Radial pulse present / SBP ~80-90 mmHg).`;
+            `• <strong>MHP Transfusion Target:</strong> Administer PRBC & FFP in 1:1 ratio. Target SBP 80-90 mmHg.`;
         document.getElementById('res-blood').style.display = 'block';
     }
 
-    // --- GCS INTERACTIVE ENGINE ---
+    // --- LAST & INTRALIPID ENGINE ---
+    function calcLast() {
+        const w = parseFloat(document.getElementById('lastWeight').value);
+        if(!w) { alert("Enter weight"); return; }
+
+        // Max Levobupivacaine 0.25% dose = 2 mg/kg
+        const maxMg = w * 2.5;
+        const maxMl = maxMg / 2.5; // 2.5mg/mL
+
+        // Intralipid 20%: 1.5 mL/kg bolus, 15 mL/kg/hr infusion
+        const bolusMl = w * 1.5;
+        const infRateMl = w * 15;
+
+        document.getElementById('out-last').innerHTML = 
+            `• <strong>Levobupivacaine 0.25% Max Block Limit:</strong> ${maxMl.toFixed(0)} mL (${maxMg.toFixed(0)} mg)<br><br>` +
+            `🚨 <strong>Intralipid 20% Rescue Protocol:</strong><br>` +
+            `• <strong>IV Stat Bolus:</strong> ${Math.round(bolusMl)} mL over 1 minute<br>` +
+            `• <strong>IV Infusion Rate:</strong> ${Math.round(infRateMl)} mL/hr`;
+        document.getElementById('res-last').style.display = 'block';
+    }
+
+    // --- PROCEDURAL SEDATION ENGINE ---
+    function calcSed() {
+        const w = parseFloat(document.getElementById('sedWeight').value);
+        if(!w) { alert("Enter weight"); return; }
+
+        // Ketamine 0.25 - 0.5 mg/kg boluses
+        const kLow = w * 0.25; const kHigh = w * 0.5;
+        // Midazolam 0.05 mg/kg bolus
+        const mDose = w * 0.05;
+
+        document.getElementById('out-sed').innerHTML = 
+            `• <strong>Ketamine Bolus (0.25 - 0.5 mg/kg):</strong> ${kLow.toFixed(0)} mg - ${kHigh.toFixed(0)} mg (${(kLow/10).toFixed(1)} - ${(kHigh/10).toFixed(1)} mL of 10mg/mL)<br>` +
+            `• <strong>Midazolam Bolus (0.05 mg/kg):</strong> ${mDose.toFixed(1)} mg (${(mDose/2).toFixed(1)} mL of 2mg/mL)<br>` +
+            `<small>Titrate incrementally every 3-5 mins. Maintain 100% $O_2$ & suction ready.</small>`;
+        document.getElementById('res-sed').style.display = 'block';
+    }
+
+    // --- GCS ENGINE ---
     let gcsScores = { e: 4, v: 5, m: 6 };
     function setGcs(type, val, btn) {
         gcsScores[type] = val;
-        // Visual selection handling
-        const parent = btn.parentElement;
-        parent.querySelectorAll('.gcs-btn').forEach(b => b.classList.remove('selected'));
+        btn.parentElement.querySelectorAll('.gcs-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
 
         const total = gcsScores.e + gcsScores.v + gcsScores.m;
@@ -321,16 +435,13 @@
         const mtcBox = document.getElementById('gcsMtc');
         if(total <= 12 || gcsScores.m <= 5) {
             mtcBox.innerText = "🚨 MAJOR TRAUMA CENTRE (MTC) CRITERIA MET (GCS ≤12 / Motor ≤5)";
-            mtcBox.style.color = "#fc8181";
-            mtcBox.style.fontWeight = "bold";
+            mtcBox.style.color = "#fc8181"; mtcBox.style.fontWeight = "bold";
         } else {
             mtcBox.innerText = "Major Trauma Centre Triage: Standard Protocol";
-            mtcBox.style.color = "#a0aec0";
-            mtcBox.style.fontWeight = "normal";
+            mtcBox.style.color = "#a0aec0"; mtcBox.style.fontWeight = "normal";
         }
     }
 
-    // Run initial ped calc on page load
     calcPeds();
 </script>
 
