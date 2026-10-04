@@ -73,12 +73,12 @@
 
 <div class="wrapper">
     <nav class="master-nav">
-        <button class="nav-btn active" onclick="switchPanel('meds')"><span>💊</span>Vols</button>
-        <button class="nav-btn" onclick="switchPanel('pills')"><span>📦</span>Pills</button>
-        <button class="nav-btn" onclick="switchPanel('fluids')"><span>💧</span>Fluids/CRI</button>
-        <button class="nav-btn" onclick="switchPanel('diets')"><span>⚖️</span>Weight</button>
-        <button class="nav-btn" onclick="switchPanel('blood')"><span>🩸</span>Blood</button>
-        <button class="nav-btn danger-tab" onclick="switchPanel('crash')"><span>🚨</span>Triage</button>
+        <button class="nav-btn active" onclick="switchPanel(this,'meds')"><span>💊</span>Vols</button>
+        <button class="nav-btn" onclick="switchPanel(this,'pills')"><span>📦</span>Pills</button>
+        <button class="nav-btn" onclick="switchPanel(this,'fluids')"><span>💧</span>Fluids/CRI</button>
+        <button class="nav-btn" onclick="switchPanel(this,'diets')"><span>⚖️</span>Weight</button>
+        <button class="nav-btn" onclick="switchPanel(this,'blood')"><span>🩸</span>Blood</button>
+        <button class="nav-btn danger-tab" onclick="switchPanel(this,'crash')"><span>🚨</span>Triage</button>
     </nav>
 
     <div class="card">
@@ -105,10 +105,10 @@
         <div id="panel-pills" class="panel">
             <h2 class="purple-title">📦 Antibiotic & Pill Dispenser</h2>
             <div class="input-group"><label>Patient Weight (kg)</label><input type="number" id="pw" step="0.1" placeholder="e.g. 22"></div>
-            <div class="input-group"><label>Target Dose Rate (mg/kg)</label><input type="number" id="pdr" value="12.5" placeholder="e.g. 12.5"></div>
+            <div class="input-group"><label>Target Dose Rate (mg/kg)</label><input type="number" id="pdr" step="0.01" value="12.5" placeholder="e.g. 12.5"></div>
             <div class="input-group">
                 <label>Stocked Tablet Strengths Available</label>
-                <select id="pstock">
+                <select id="pstock" onchange="setPillDefault()">
                     <option value="synulox">Synulox/Amoxicillin Mix (50mg, 250mg, 500mg)</option>
                     <option value="apoquel">Apoquel (3.6mg, 5.4mg, 16mg)</option>
                     <option value="pred">Prednisolone (1mg, 5mg, 25mg)</option>
@@ -145,14 +145,20 @@
 
         <div id="panel-diets" class="panel">
             <h2 class="green-title">⚖️ Medical Weight Loss Management</h2>
-            <div class="input-group"><label>Species</label><select id="dspecies"><option value="dog">Canine (Dog)</option><option value="cat">Feline (Cat)</option></select></div>
+            <div class="input-group"><label>Species</label><select id="dspecies" onchange="toggleVirbacPlan()"><option value="dog">Canine (Dog)</option><option value="cat">Feline (Cat)</option></select></div>
             <div class="input-group">
                 <label>Diet Type</label>
-                <select id="ddiet">
-                    <option value="hills">Hill's Prescription Diet Metabolic</option>
-                    <option value="purina">Purina Pro Plan OM Obesity Mgmt</option>
-                    <option value="royal">Royal Canin Veterinary Satiety</option>
+                <select id="ddiet" onchange="toggleVirbacPlan()">
+                    <option value="hills">Hill's Prescription Diet Metabolic (dry)</option>
+                    <option value="purina">Purina Pro Plan Vet Diets OM (dry)</option>
+                    <option value="royal">Royal Canin Satiety Weight Management (dry)</option>
+                    <option value="virbac_w1">Virbac HPM W1 Weight Loss &amp; Diabetes (Dog)</option>
+                    <option value="virbac_w2">Virbac HPM W2 Weight Loss &amp; Control (Dog)</option>
                 </select>
+            </div>
+            <div class="input-group" id="vplan-group">
+                <label>Feeding Plan</label>
+                <select id="vplan"></select>
             </div>
             <div class="input-group"><label>Current Weight (kg)</label><input type="number" id="dcw" step="0.1" placeholder="e.g. 35" oninput="autoIdealWeight()"></div>
             <div class="input-group">
@@ -211,7 +217,11 @@
             <div class="input-group">
                 <label>Chocolate Type</label>
                 <select id="ct">
-                    <option value="2">Standard Milk Chocolate</option><option value="8">Dark Chocolate (Plain)</option><option value="14">Baking Cocoa Powder</option>
+                    <option value="0.04">White Chocolate (0.04 mg/g)</option>
+                    <option value="2.3" selected>Milk Chocolate (2.3 mg/g)</option>
+                    <option value="8">Dark / Plain Chocolate (8 mg/g – cautious figure)</option>
+                    <option value="15.5">Very Dark 85%+ / Baking Chocolate (15.5 mg/g)</option>
+                    <option value="28.5">Cocoa Powder (28.5 mg/g)</option>
                 </select>
             </div>
             <div class="input-group"><label>Grams Consumed</label><input type="number" id="cg" placeholder="e.g. 150"></div>
@@ -222,15 +232,15 @@
             </div>
         </div>
 
-        <p class="warning-text">Oxford Veterinary Clinical Suite. Designed for qualified validation sign-off profiles.</p>
+        <p class="warning-text">For use by qualified veterinary staff. Always double-check results before giving any drug, fluid or diet. Version: 4 Oct 2026.</p>
     </div>
 </div>
 
 <script>
-    function switchPanel(panelId) {
+    function switchPanel(btn, panelId) {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        btn.classList.add('active');
         document.getElementById('panel-' + panelId).classList.add('active');
     }
 
@@ -297,6 +307,13 @@
     }
 
     // --- PANEL 2: PILL OPTIMIZATION ENGINE ---
+    // Sensible starting dose for each drug. Prednisolone is left blank because the dose depends on what it is for.
+    const PILL_DEFAULTS = { synulox: "12.5", apoquel: "0.5", pred: "" };
+    function setPillDefault() {
+        const stock = document.getElementById('pstock').value;
+        document.getElementById('pdr').value = PILL_DEFAULTS[stock];
+        document.getElementById('res-pills').style.display = 'none';
+    }
     function calcPills() {
         const w = parseFloat(document.getElementById('pw').value);
         const dr = parseFloat(document.getElementById('pdr').value);
@@ -304,28 +321,49 @@
         if(!w || !dr){ alert("Weight and dose required"); return; }
 
         const targetMg = w * dr;
-        let pills = []; let outputText = "";
-        if (stock === 'synulox') { pills = [500, 250, 50]; } 
-        else if (stock === 'apoquel') { pills = [16, 5.4, 3.6]; } 
+        let pills;
+        if (stock === 'synulox') { pills = [500, 250, 50]; }
+        else if (stock === 'apoquel') { pills = [16, 5.4, 3.6]; }
         else { pills = [25, 5, 1]; }
 
-        let remainingMg = targetMg; let allocation = [];
-        for (let size of pills) {
-            let fullTablets = Math.floor(remainingMg / size);
-            if (fullTablets > 0) {
-                allocation.push(`${fullTablets} × ${size}mg tab(s)`);
-                remainingMg -= (fullTablets * size);
-            }
-            if (remainingMg >= (size * 0.45)) {
-                allocation.push(`½ × ${size}mg tab`);
-                remainingMg -= (size * 0.5);
+        // Try every combination of whole and half tablets, pick the one closest to the target dose,
+        // and if two are equally close, the one with fewer pieces.
+        const maxHalves = pills.map(size => Math.ceil((targetMg * 1.5) / (size / 2)) + 1);
+        // Collect every combination, then pick: within 2% of the target (or the closest possible if none are),
+        // use the one with the fewest pieces to count out.
+        let combos = [];
+        for (let a = 0; a <= maxHalves[0]; a++) {
+            for (let b = 0; b <= maxHalves[1]; b++) {
+                for (let c = 0; c <= maxHalves[2]; c++) {
+                    if (a + b + c === 0) continue;
+                    const mg = (a * pills[0] + b * pills[1] + c * pills[2]) / 2;
+                    const pieces = Math.ceil(a/2) + Math.ceil(b/2) + Math.ceil(c/2);
+                    combos.push({ halves: [a, b, c], mg, diff: Math.abs(mg - targetMg), pieces, splits: a%2 + b%2 + c%2 });
+                }
             }
         }
-        if(allocation.length === 0) { outputText = "Dose too small for selected tablet variants."; } 
-        else { outputText = allocation.join("<br>+ "); }
+        const closest = combos.reduce((m, x) => Math.min(m, x.diff), Infinity);
+        const allowed = Math.max(closest, targetMg * 0.02) + 0.0001;
+        const best = combos.filter(x => x.diff <= allowed)
+            .sort((x, y) => (x.pieces - y.pieces) || (x.splits - y.splits) || (x.diff - y.diff))[0];
 
-        document.getElementById('out-pills').innerHTML = outputText;
-        document.getElementById('break-pills').innerHTML = `<strong>Proof Parameters:</strong><br>Target Dose: ${w}kg × ${dr}mg/kg = ${targetMg.toFixed(1)}mg total per application.`;
+        const describe = (halves, size) => {
+            const whole = Math.floor(halves / 2), half = halves % 2;
+            if (whole === 0 && half === 0) return null;
+            let txt = whole > 0 ? `${whole}` : '';
+            if (half) txt += (whole > 0 ? '½' : '½');
+            return `${txt} × ${size}mg tab`;
+        };
+        const parts = pills.map((size, i) => describe(best.halves[i], size)).filter(Boolean);
+        const pctOff = ((best.mg - targetMg) / targetMg) * 100;
+
+        let warn = '';
+        if (Math.abs(pctOff) > 10) {
+            warn = `<div style="color:#c53030; font-size:0.9rem; margin-top:6px;">⚠️ Closest combination is ${pctOff > 0 ? 'over' : 'under'} the target by ${Math.abs(pctOff).toFixed(0)}%. Check with the vet.</div>`;
+        }
+
+        document.getElementById('out-pills').innerHTML = parts.join("<br>+ ") + warn;
+        document.getElementById('break-pills').innerHTML = `<strong>Proof Parameters:</strong><br>Target Dose: ${w}kg × ${dr}mg/kg = ${targetMg.toFixed(1)}mg per dose.<br>This combination gives <strong>${best.mg.toFixed(1)}mg</strong> (${pctOff >= 0 ? '+' : ''}${pctOff.toFixed(1)}%), which is ${(best.mg / w).toFixed(2)} mg/kg.`;
         document.getElementById('res-pills').style.display = 'block';
     }
 
@@ -350,14 +388,19 @@
         const criConc = parseFloat(document.getElementById('fcri_conc').value);
         const bagVol = parseFloat(document.getElementById('fbag').value);
 
-        if(criDose && criConc && bagVol) {
+        if((criDose || criConc) && !(criDose && criConc && bagVol)) {
+            proofStr += `<br><span style="color:#c53030;">CRI not calculated: fill in dose, concentration and bag volume.</span>`;
+        }
+        if(criDose && criConc && bagVol && totalFluidRatePerHour <= 0) {
+            proofStr += `<br><span style="color:#c53030;">CRI not calculated: fluid rate is zero.</span>`;
+        } else if(criDose && criConc && bagVol) {
             const mgPerHour = w * criDose;
             const hoursPerBag = bagVol / totalFluidRatePerHour;
             const totalMgNeededInBag = mgPerHour * hoursPerBag;
             const mlDrugToInjectInBag = totalMgNeededInBag / criConc;
             
             outStr += `<span style="color:#c53030;">• CRI Injection: Add ${mlDrugToInjectInBag.toFixed(2)} mL of drug into a ${bagVol}mL fluid bag.</span>`;
-            proofStr += `<br><strong>CRI Proof:</strong><br>Requires ${mgPerHour.toFixed(2)} mg/hr.<br>Bag lasts ${hoursPerBag.toFixed(1)} hours.<br>Total required in bag: ${totalMgNeededInBag.toFixed(2)} mg = ${mlDrugToInjectInBag.toFixed(2)} mL.`;
+            proofStr += `<br><strong>CRI Proof:</strong><br>Requires ${mgPerHour.toFixed(2)} mg/hr.<br>Bag lasts ${hoursPerBag.toFixed(1)} hours.<br>Total required in bag: ${totalMgNeededInBag.toFixed(2)} mg = ${mlDrugToInjectInBag.toFixed(2)} mL.<br>If the fluid rate is changed, the drug dose changes with it, so recalculate.`;
         }
         
         document.getElementById('out-fluids').innerHTML = outStr;
@@ -370,26 +413,113 @@
         const cw = parseFloat(document.getElementById('dcw').value);
         const bcs = parseInt(document.getElementById('dbcs').value);
         if(!cw) return;
-        let f = 1.0;
+        let f = 1.0; // each BCS point above 5 is roughly 10% over ideal weight
         if(bcs===6) f=1.10; else if(bcs===7) f=1.20; else if(bcs===8) f=1.30; else if(bcs===9) f=1.40;
         document.getElementById('dtw').value = (cw / f).toFixed(1);
     }
+    // --- MANUFACTURER FEEDING TABLES (dry food only) ---
+    // Grams per day copied from each maker's published feeding guide (checked Oct 2026).
+    // Values between two table rows are worked out in a straight line. Outside the table range, no answer is given.
+    // basis: 'target' = use target/ideal weight, 'current' = use current weight (as each maker instructs).
+    const DIETS = {
+        hills: {
+            name: "Hill's Metabolic", col: "#111a3a",
+            dog: { note: "Hill's UK guide (Metabolic original, chicken), 310 kcal/100g.", recheck: "every 2 weeks", weights: [2.5, 5, 7.5, 10, 20, 30, 40, 50, 60], plans: {
+                loss:  { label: "Weight loss",            basis: "target", grams: [45, 75, 100, 125, 215, 290, 360, 400, 480] },
+                maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [65, 105, 145, 180, 300, 405, 505, 550, 660] } } },
+            cat: { note: "Hill's UK guide, 341 kcal/100g.", recheck: "every 2 weeks", weights: [2, 3, 4, 5, 6, 7, 8, 9, 10], plans: {
+                loss:  { label: "Weight loss",            basis: "target", grams: [30, 35, 45, 55, 60, 70, 80, 90, 100] },
+                maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [35, 45, 60, 70, 72, 84, 96, 108, 120] } } }
+        },
+        purina: {
+            name: "Purina OM", col: "#2c70b9",
+            dog: { note: "Purina UK guide, 296 kcal/100g. Purina bases amounts on CURRENT weight and says to readjust as the dog loses weight.", recheck: "every 2–4 weeks", weights: [2.5, 5, 10, 15, 25, 35, 45, 70], plans: {
+                loss:  { label: "Weight loss",            basis: "current", grams: [60, 95, 150, 200, 285, 355, 420, 565] },
+                maint: { label: "Maintenance",            basis: "current", grams: [75, 120, 190, 250, 355, 440, 525, 705] } } },
+            cat: { note: "Purina UK guide, 343 kcal/100g. Amounts by body weight; readjust after reweighing.", recheck: "every 2–4 weeks", weights: [4, 6, 8, 10], plans: {
+                loss:  { label: "Weight loss",            basis: "current", grams: [35, 55, 75, 95] },
+                maint: { label: "Maintenance",            basis: "current", grams: [45, 70, 95, 115] } } }
+        },
+        royal: {
+            name: "Royal Canin Satiety", col: "#d62222",
+            dog: { note: "Royal Canin Satiety Weight Management guide. For dogs under 10 kg target, Royal Canin make a separate Small Dog version.", recheck: "every 2 weeks", weights: [10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50], plans: {
+                start: { label: "Weight loss – starting amount", basis: "target", grams: [147, 169, 189, 209, 228, 247, 292, 335, 376, 416, 454, 491] },
+                stall: { label: "Weight loss – if no loss after 4 months", basis: "target", grams: [126, 144, 162, 179, 196, 212, 250, 287, 322, 356, 389, 421] },
+                maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [139, 159, 178, 197, 215, 233, 276, 316, 355, 392, 428, 463] } } },
+            cat: { note: "Royal Canin Satiety Support (cat) guide, 304 kcal/100g.", recheck: "every 2 weeks", weights: [3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 9, 10], plans: {
+                over30: { label: "Weight loss – more than 30% overweight", basis: "target", grams: [34, 40, 45, 51, 57, 62, 68, 79, 91, 102, 113] },
+                over15: { label: "Weight loss – 15–30% overweight",        basis: "target", grams: [29, 34, 39, 44, 49, 53, 58, 68, 78, 87, 97] },
+                maint:  { label: "Maintenance (at ideal weight)",           basis: "target", grams: [53, 62, 71, 80, 89, 98, 107, 125, 142, 160, 178] } } }
+        },
+        virbac_w1: {
+            name: "Virbac W1", col: "#0055a5",
+            dog: { note: "Virbac HPM W1 guide, 274 kcal/100g.", recheck: "every week", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
+                strong:   { label: "Strong restriction (weight loss)",   basis: "target",  grams: [55, 80, 110, 125, 165, 200, 235, 265, 320, 420] },
+                moderate: { label: "Moderate restriction (weight loss)", basis: "target",  grams: [75, 105, 145, 170, 220, 270, 310, 350, 425, 560] },
+                diabetic: { label: "Weight loss with diabetes",          basis: "current", grams: [75, 105, 145, 170, 220, 270, 310, 350, 425, 560] } } }
+        },
+        virbac_w2: {
+            name: "Virbac W2", col: "#0055a5",
+            dog: { note: "Virbac HPM W2 guide, 324 kcal/100g.", recheck: "every week (monthly once on maintenance)", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
+                loss:     { label: "Weight loss",                  basis: "target",  grams: [65, 90, 125, 145, 190, 225, 265, 300, 360, 475] },
+                control:  { label: "Weight control (maintenance)", basis: "current", grams: [70, 100, 140, 160, 210, 255, 295, 335, 405, 530] },
+                diabetes: { label: "Diabetes (without obesity)",   basis: "current", grams: [100, 140, 195, 225, 295, 355, 410, 465, 560, 740] } } }
+        }
+    };
+    function toggleVirbacPlan() {
+        const d = document.getElementById('ddiet').value;
+        const s = document.getElementById('dspecies').value;
+        const sel = document.getElementById('vplan');
+        sel.innerHTML = '';
+        const table = DIETS[d][s];
+        if (!table) {
+            const o = document.createElement('option');
+            o.value = ''; o.textContent = 'No cat feeding table for this food';
+            sel.appendChild(o);
+        } else {
+            for (const key in table.plans) {
+                const o = document.createElement('option');
+                o.value = key; o.textContent = table.plans[key].label;
+                sel.appendChild(o);
+            }
+        }
+        document.getElementById('res-diets').style.display = 'none';
+    }
+    function tableLookup(weights, grams, kg) {
+        if (kg < weights[0] || kg > weights[weights.length - 1]) return null;
+        for (let i = 0; i < weights.length - 1; i++) {
+            if (kg >= weights[i] && kg <= weights[i + 1]) {
+                return grams[i] + (kg - weights[i]) * (grams[i + 1] - grams[i]) / (weights[i + 1] - weights[i]);
+            }
+        }
+        return grams[grams.length - 1];
+    }
+
     function calcDiet() {
         const s = document.getElementById('dspecies').value;
         const d = document.getElementById('ddiet').value;
         const cw = parseFloat(document.getElementById('dcw').value);
         const tw = parseFloat(document.getElementById('dtw').value);
         if(!cw || !tw){ alert("Missing weights"); return; }
-        
-        let g = 0; let b = ""; let col = "#000"; let name = "";
-        if(d==='hills'){ col="#111a3a"; name="Hill's Metabolic"; if(s==='dog'){ if(tw<=5) g=15*tw; else if(tw<=10) g=75+(tw-5)*10; else g=125+(tw-10)*8.5; } else { g=13*tw+6; } b=`Using direct target linear scaling variables.`; }
-        else if(d==='purina'){ col="#2c70b9"; name="Purina OM"; if(s==='dog'){ g = (70 * Math.pow(cw, 0.75)) / 3.1; } else { if(cw<=4) g=55; else if(cw<=5) g=70; else g=85; } b=`Based on energy restriction indexes directly targeting current structural fat mass index.`; }
-        else { col="#d62222"; name="Royal Canin Satiety"; if(s==='dog') { g = (70 * Math.pow(tw,0.75) * 1.2) / 2.9; } else { g = (53 * Math.pow(tw,0.711)) / 2.9; } b=`Calculated through metabolic exponent formulas to maximize lean tissues preservation.`; }
-        
-        const badge = document.getElementById('badge-diet'); badge.style.backgroundColor=col; badge.innerText=name;
-        document.getElementById('out-diets').innerText = `${Math.round(g)} grams / day`;
-        document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>${b}<br><br>Targeting ideal weight of ${tw}kg. Monitor weight trajectory weekly.`;
-        document.getElementById('res-diets').style.display='block';
+        if(tw > cw){ alert("Target weight is higher than current weight. Please check the weights."); return; }
+
+        const food = DIETS[d];
+        const table = food[s];
+        if (!table) { alert(`${food.name} here is a DOG food. Please choose Canine, or pick a different diet for cats.`); return; }
+        const plan = table.plans[document.getElementById('vplan').value];
+        const useKg = plan.basis === 'target' ? tw : cw;
+        const g = tableLookup(table.weights, plan.grams, useKg);
+
+        const badge = document.getElementById('badge-diet'); badge.style.backgroundColor = food.col; badge.innerText = food.name;
+        const minW = table.weights[0], maxW = table.weights[table.weights.length - 1];
+        if (g === null) {
+            document.getElementById('out-diets').innerText = `Outside feeding table`;
+            document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>This feeding table covers ${minW}–${maxW} kg (${plan.basis} weight). ${useKg}kg is outside this, so please check the ration with the vet.<br>${table.note}`;
+        } else {
+            document.getElementById('out-diets').innerText = `${Math.round(g)} grams / day`;
+            document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>Plan: ${plan.label}.<br>Read from the maker's feeding table using the <strong>${plan.basis.toUpperCase()}</strong> weight of ${useKg}kg (values between table rows are worked out in a straight line).<br>${table.note}<br><br>Re-weigh and adjust ${table.recheck}. Always check against the guide on the bag.`;
+        }
+        document.getElementById('res-diets').style.display = 'block';
     }
 
     // --- PANEL 5: BLOOD TRANSFUSION ENGINE ---
@@ -400,7 +530,9 @@
         const currentPcv = parseFloat(document.getElementById('bcurrent').value);
         const donorPcv = parseFloat(document.getElementById('bdonor').value);
 
-        if(!weight || !currentPcv || !donorPcv) { alert("Please complete blood parameter fields"); return; }
+        if(!weight || !currentPcv || !donorPcv || !targetPcv) { alert("Please complete blood parameter fields"); return; }
+        if(targetPcv <= currentPcv) { alert("Target PCV must be higher than the current PCV."); return; }
+        if(donorPcv <= targetPcv) { alert("Donor PCV must be higher than the target PCV, otherwise the target can't be reached."); return; }
 
         const transfusionVolume = (weight * factor * (targetPcv - currentPcv)) / donorPcv;
         const finalMl = Math.round(transfusionVolume);
@@ -429,11 +561,14 @@
         const toxicityMgPerKg = (g * f) / w;
         const b = document.getElementById('banner-tox'); const o = document.getElementById('out-tox');
         
-        if(toxicityMgPerKg < 20) { b.style.background="#f0fff4"; b.style.color="#22543d"; b.innerText="✅ BELOW TOXIC LIMIT"; o.innerHTML=`Dose: ${toxicityMgPerKg.toFixed(1)} mg/kg. Sub-clinical. Monitor at home safely.`; } 
-        else if(toxicityMgPerKg >= 20 && toxicityMgPerKg < 40) { b.style.background="#feebc8"; b.style.color="#c05621"; b.innerText="⚠️ MILD TOXIC RISK"; o.innerHTML=`Dose: <strong>${toxicityMgPerKg.toFixed(1)} mg/kg</strong>.<br>Action: Safely induce emesis if within 2 hours.`; } 
-        else { b.style.background="#fff5f5"; b.style.color="#742a2a"; b.innerText="🚨 HIGH CRITICAL TOXICITY"; o.innerHTML=`Dose: <strong>${toxicityMgPerKg.toFixed(1)} mg/kg</strong>.<br>Action: Admit immediately, carry out gastric support, and start high-rate IV fluid lines.`; }
+        const dose = `Dose: <strong>${toxicityMgPerKg.toFixed(1)} mg/kg</strong> (${g}g × ${f} mg/g ÷ ${w}kg).<br>`;
+        if(toxicityMgPerKg < 20) { b.style.background="#f0fff4"; b.style.color="#22543d"; b.innerText="✅ BELOW 20 mg/kg"; o.innerHTML=`${dose}Clinical signs unlikely. Owner to monitor and phone back if any vomiting, restlessness or fast heart rate.`; }
+        else if(toxicityMgPerKg < 40) { b.style.background="#feebc8"; b.style.color="#c05621"; b.innerText="⚠️ MILD SIGNS LIKELY (20–40 mg/kg)"; o.innerHTML=`${dose}Vomiting, diarrhoea, thirst possible.<br>Action: Induce emesis if eaten within 2 hours and not showing signs.`; }
+        else if(toxicityMgPerKg < 60) { b.style.background="#fff5f5"; b.style.color="#742a2a"; b.innerText="🚨 SEVERE – HEART EFFECTS (40–60 mg/kg)"; o.innerHTML=`${dose}Fast heart rate and arrhythmias possible.<br>Action: Admit. Emesis if within 2 hours, then supportive care, ECG and IV fluids as directed by the vet.`; }
+        else { b.style.background="#fff5f5"; b.style.color="#742a2a"; b.innerText="🚨 CRITICAL – SEIZURE RISK (60+ mg/kg)"; o.innerHTML=`${dose}Seizures possible.<br>Action: Admit immediately. Emesis if within 2 hours and safe, then full supportive care as directed by the vet.`; }
         document.getElementById('res-tox').style.display='block';
     }
+    toggleVirbacPlan();
 </script>
 
 </body>
