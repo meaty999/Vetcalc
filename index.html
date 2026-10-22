@@ -183,10 +183,28 @@
                         <option value="0.75">75% wet / 25% dry</option>
                     </select>
                 </div>
-                <div class="input-group"><label>Wet food name / brand – optional (can be a different brand to the dry food)</label><input type="text" id="dwetname" placeholder="e.g. Hill's c/d wet, Royal Canin Satiety"></div>
-                <div class="input-group"><label>Wet food energy (kcal per 100 g, from the pouch/tin label)</label><input type="number" id="dwetkcal" step="1" placeholder="e.g. 85"></div>
-                <div class="input-group"><label>Pouch / tin size (g) – optional</label><input type="number" id="dwetsize" step="1" placeholder="e.g. 85"></div>
-                <div style="font-size:0.75rem; color:#555;">Virbac do not make a wet W1 or W2 for cats, so the wet food is one you choose. Use a wet food the vet has approved for this patient.</div>
+                <div class="input-group"><label>Wet food</label>
+                    <select id="dwetsel" onchange="setWet()">
+                        <option value="">Choose a wet food...</option>
+                        <optgroup label="Vet diets">
+                        <option value="hills_metabolic" data-name="Hill's Metabolic wet (pouch)" data-kcal="67.7" data-size="85">Hill's Prescription Diet Metabolic – pouch (67.7 kcal/100g)</option>
+                        <option value="purina_om" data-name="Purina Pro Plan OM St/Ox wet (pouch)" data-kcal="75" data-size="85">Purina Pro Plan Vet OM Obesity Mgmt – pouch (75 kcal/100g)</option>
+                        <option value="rc_satiety" data-name="Royal Canin Satiety wet (pouch)" data-kcal="60.7" data-size="85">Royal Canin Satiety Weight Mgmt – pouch (60.7 kcal/100g)</option>
+                        </optgroup>
+                        <optgroup label="Shop-bought (typical – varies by flavour, check the pouch)">
+                        <option value="whiskas" data-name="Whiskas 1+ wet (pouch)" data-kcal="71" data-size="85">Whiskas 1+ pouch, jelly or gravy (71 kcal/100g)</option>
+                        <option value="sheba" data-name="Sheba Fine Flakes wet (pouch)" data-kcal="69.4" data-size="85">Sheba Fine Flakes pouch, fish in jelly (69 kcal/100g)</option>
+                        <option value="gourmet" data-name="Gourmet Perle wet (pouch)" data-kcal="83" data-size="85">Gourmet Perle pouch, Chef's Collection in gravy (83 kcal/100g)</option>
+                        </optgroup>
+                        <option value="other">Other wet food (type in the details)</option>
+                    </select>
+                </div>
+                <div id="wet-custom" style="display:none;">
+                    <div class="input-group"><label>Wet food name / brand</label><input type="text" id="dwetname" placeholder="e.g. Hill's c/d wet"></div>
+                    <div class="input-group"><label>Wet food energy (kcal per 100 g, from the pouch/tin label)</label><input type="number" id="dwetkcal" step="0.1" placeholder="e.g. 85"></div>
+                    <div class="input-group"><label>Pouch / tin size (g) – optional</label><input type="number" id="dwetsize" step="1" placeholder="e.g. 85"></div>
+                </div>
+                                <div style="font-size:0.75rem; color:#555;">Virbac do not make a wet W1 or W2 for cats, so the wet food is one you choose. Use a wet food the vet has approved for this patient.</div>
             </div>
             <button class="calc-btn green-btn" onclick="calcDiet()">Calculate Daily Ration</button>
             <div id="res-diets" class="result-box green-box">
@@ -252,7 +270,7 @@
             </div>
         </div>
 
-        <p class="warning-text">For use by qualified veterinary staff. Always double-check results before giving any drug, fluid or diet. Version: v3, 22 Oct 2026.</p>
+        <p class="warning-text">For use by qualified veterinary staff. Always double-check results before giving any drug, fluid or diet. Version: v5, 22 Oct 2026.</p>
     </div>
 </div>
 
@@ -517,6 +535,23 @@
         }
         document.getElementById('res-diets').style.display = 'none';
     }
+    function setWet() {
+        const sel = document.getElementById('dwetsel');
+        const opt = sel.options[sel.selectedIndex];
+        const custom = document.getElementById('wet-custom');
+        if (sel.value === 'other') {
+            custom.style.display = 'block';
+            document.getElementById('dwetname').value = '';
+            document.getElementById('dwetkcal').value = '';
+            document.getElementById('dwetsize').value = '';
+        } else {
+            custom.style.display = 'none';
+            document.getElementById('dwetname').value = sel.value ? opt.getAttribute('data-name') : '';
+            document.getElementById('dwetkcal').value = sel.value ? opt.getAttribute('data-kcal') : '';
+            document.getElementById('dwetsize').value = sel.value ? opt.getAttribute('data-size') : '';
+        }
+    }
+
     function toggleMix() {
         document.getElementById('mix-group').style.display = document.getElementById('dmix').value === 'mixed' ? 'block' : 'none';
         document.getElementById('res-diets').style.display = 'none';
@@ -562,7 +597,8 @@
                 if (!table.kcal) {
                     mixText = `<br><span style="color:#c53030;">Wet + dry not calculated: no energy value (kcal) is stored for this dry food.</span>`;
                 } else if (!wetKcal || wetKcal <= 0) {
-                    mixText = `<br><span style="color:#c53030;">Wet + dry not calculated: enter the wet food's kcal per 100 g (it is on the pouch/tin label).</span>`;
+                    outText = `Choose a wet food`;
+                    mixText = `<br><span style="color:#c53030;">Wet + dry not calculated: choose a wet food, or pick Other and enter its kcal per 100 g (it is on the pouch/tin label).</span>`;
                 } else {
                     const totalKcal = g * table.kcal / 100;
                     const wetKcalToday = totalKcal * pct;
