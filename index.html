@@ -152,8 +152,8 @@
                     <option value="hills">Hill's Prescription Diet Metabolic (dry)</option>
                     <option value="purina">Purina Pro Plan Vet Diets OM (dry)</option>
                     <option value="royal">Royal Canin Satiety Weight Management (dry)</option>
-                    <option value="virbac_w1">Virbac HPM W1 Weight Loss &amp; Diabetes (Dog)</option>
-                    <option value="virbac_w2">Virbac HPM W2 Weight Loss &amp; Control (Dog)</option>
+                    <option value="virbac_w1">Virbac HPM W1 Weight Loss &amp; Diabetes (dry)</option>
+                    <option value="virbac_w2">Virbac HPM W2 Weight Loss &amp; Control (dry)</option>
                 </select>
             </div>
             <div class="input-group" id="vplan-group">
@@ -168,6 +168,26 @@
                 </select>
             </div>
             <div class="input-group"><label>Target Ideal Weight (kg)</label><input type="number" id="dtw" step="0.1"></div>
+            <div class="input-group">
+                <label>Feeding Method</label>
+                <select id="dmix" onchange="toggleMix()">
+                    <option value="dry">Dry food only</option>
+                    <option value="mixed">Dry + wet food combined</option>
+                </select>
+            </div>
+            <div id="mix-group" style="display:none; background:#f0fff4; border:1px dashed #2f855a; border-radius:6px; padding:10px; margin-bottom:12px;">
+                <div class="input-group"><label>Share of daily calories from the wet food</label>
+                    <select id="dmixpct">
+                        <option value="0.25">25% wet / 75% dry</option>
+                        <option value="0.5" selected>50% wet / 50% dry</option>
+                        <option value="0.75">75% wet / 25% dry</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Wet food name / brand – optional (can be a different brand to the dry food)</label><input type="text" id="dwetname" placeholder="e.g. Hill's c/d wet, Royal Canin Satiety"></div>
+                <div class="input-group"><label>Wet food energy (kcal per 100 g, from the pouch/tin label)</label><input type="number" id="dwetkcal" step="1" placeholder="e.g. 85"></div>
+                <div class="input-group"><label>Pouch / tin size (g) – optional</label><input type="number" id="dwetsize" step="1" placeholder="e.g. 85"></div>
+                <div style="font-size:0.75rem; color:#555;">Virbac do not make a wet W1 or W2 for cats, so the wet food is one you choose. Use a wet food the vet has approved for this patient.</div>
+            </div>
             <button class="calc-btn green-btn" onclick="calcDiet()">Calculate Daily Ration</button>
             <div id="res-diets" class="result-box green-box">
                 <div id="badge-diet" style="color:white; display:inline-block; padding:3px 8px; font-size:0.75rem; font-weight:bold; border-radius:4px; margin-bottom:5px;"></div>
@@ -232,7 +252,7 @@
             </div>
         </div>
 
-        <p class="warning-text">For use by qualified veterinary staff. Always double-check results before giving any drug, fluid or diet. Version: 4 Oct 2026.</p>
+        <p class="warning-text">For use by qualified veterinary staff. Always double-check results before giving any drug, fluid or diet. Version: v3, 22 Oct 2026.</p>
     </div>
 </div>
 
@@ -248,6 +268,8 @@
     let tapTimes = [];
     function handleHeartTap() {
         const now = performance.now();
+        // If more than 3 seconds since the last tap, start a fresh count (old taps would give a wrong BPM)
+        if (tapTimes.length && now - tapTimes[tapTimes.length - 1] > 3000) tapTimes = [];
         tapTimes.push(now);
         
         // Keep only the last 6 taps for an accurate rolling average
@@ -370,7 +392,7 @@
     // --- PANEL 3: FLUIDS & CRI ENGINE ---
     function calcFluids() {
         const w = parseFloat(document.getElementById('fw').value);
-        const maintRate = parseFloat(document.getElementById('fmaint').value);
+        const maintRate = parseFloat(document.getElementById('fmaint').value) || 0;
         const pct = parseFloat(document.getElementById('fdehyd').value) || 0;
         const hr = parseFloat(document.getElementById('fhours').value) || 24;
         if(!w){ alert("Weight required"); return; }
@@ -424,19 +446,19 @@
     const DIETS = {
         hills: {
             name: "Hill's Metabolic", col: "#111a3a",
-            dog: { note: "Hill's UK guide (Metabolic original, chicken), 310 kcal/100g.", recheck: "every 2 weeks", weights: [2.5, 5, 7.5, 10, 20, 30, 40, 50, 60], plans: {
+            dog: { kcal: 310, note: "Hill's UK guide (Metabolic original, chicken), 310 kcal/100g.", recheck: "every 2 weeks", weights: [2.5, 5, 7.5, 10, 20, 30, 40, 50, 60], plans: {
                 loss:  { label: "Weight loss",            basis: "target", grams: [45, 75, 100, 125, 215, 290, 360, 400, 480] },
                 maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [65, 105, 145, 180, 300, 405, 505, 550, 660] } } },
-            cat: { note: "Hill's UK guide, 341 kcal/100g.", recheck: "every 2 weeks", weights: [2, 3, 4, 5, 6, 7, 8, 9, 10], plans: {
+            cat: { kcal: 341, note: "Hill's UK guide, 341 kcal/100g.", recheck: "every 2 weeks", weights: [2, 3, 4, 5, 6, 7, 8, 9, 10], plans: {
                 loss:  { label: "Weight loss",            basis: "target", grams: [30, 35, 45, 55, 60, 70, 80, 90, 100] },
                 maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [35, 45, 60, 70, 72, 84, 96, 108, 120] } } }
         },
         purina: {
             name: "Purina OM", col: "#2c70b9",
-            dog: { note: "Purina UK guide, 296 kcal/100g. Purina bases amounts on CURRENT weight and says to readjust as the dog loses weight.", recheck: "every 2–4 weeks", weights: [2.5, 5, 10, 15, 25, 35, 45, 70], plans: {
+            dog: { kcal: 296, note: "Purina UK guide, 296 kcal/100g. Purina bases amounts on CURRENT weight and says to readjust as the dog loses weight.", recheck: "every 2–4 weeks", weights: [2.5, 5, 10, 15, 25, 35, 45, 70], plans: {
                 loss:  { label: "Weight loss",            basis: "current", grams: [60, 95, 150, 200, 285, 355, 420, 565] },
                 maint: { label: "Maintenance",            basis: "current", grams: [75, 120, 190, 250, 355, 440, 525, 705] } } },
-            cat: { note: "Purina UK guide, 343 kcal/100g. Amounts by body weight; readjust after reweighing.", recheck: "every 2–4 weeks", weights: [4, 6, 8, 10], plans: {
+            cat: { kcal: 343, note: "Purina UK guide, 343 kcal/100g. Amounts by body weight; readjust after reweighing.", recheck: "every 2–4 weeks", weights: [4, 6, 8, 10], plans: {
                 loss:  { label: "Weight loss",            basis: "current", grams: [35, 55, 75, 95] },
                 maint: { label: "Maintenance",            basis: "current", grams: [45, 70, 95, 115] } } }
         },
@@ -446,24 +468,34 @@
                 start: { label: "Weight loss – starting amount", basis: "target", grams: [147, 169, 189, 209, 228, 247, 292, 335, 376, 416, 454, 491] },
                 stall: { label: "Weight loss – if no loss after 4 months", basis: "target", grams: [126, 144, 162, 179, 196, 212, 250, 287, 322, 356, 389, 421] },
                 maint: { label: "Maintenance (at ideal weight)", basis: "target", grams: [139, 159, 178, 197, 215, 233, 276, 316, 355, 392, 428, 463] } } },
-            cat: { note: "Royal Canin Satiety Support (cat) guide, 304 kcal/100g.", recheck: "every 2 weeks", weights: [3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 9, 10], plans: {
+            cat: { kcal: 304, note: "Royal Canin Satiety Support (cat) guide, 304 kcal/100g.", recheck: "every 2 weeks", weights: [3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 9, 10], plans: {
                 over30: { label: "Weight loss – more than 30% overweight", basis: "target", grams: [34, 40, 45, 51, 57, 62, 68, 79, 91, 102, 113] },
                 over15: { label: "Weight loss – 15–30% overweight",        basis: "target", grams: [29, 34, 39, 44, 49, 53, 58, 68, 78, 87, 97] },
                 maint:  { label: "Maintenance (at ideal weight)",           basis: "target", grams: [53, 62, 71, 80, 89, 98, 107, 125, 142, 160, 178] } } }
         },
         virbac_w1: {
             name: "Virbac W1", col: "#0055a5",
-            dog: { note: "Virbac HPM W1 guide, 274 kcal/100g.", recheck: "every week", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
+            dog: { kcal: 274, note: "Virbac HPM W1 guide, 274 kcal/100g.", recheck: "every week", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
                 strong:   { label: "Strong restriction (weight loss)",   basis: "target",  grams: [55, 80, 110, 125, 165, 200, 235, 265, 320, 420] },
                 moderate: { label: "Moderate restriction (weight loss)", basis: "target",  grams: [75, 105, 145, 170, 220, 270, 310, 350, 425, 560] },
-                diabetic: { label: "Weight loss with diabetes",          basis: "current", grams: [75, 105, 145, 170, 220, 270, 310, 350, 425, 560] } } }
+                diabetic: { label: "Weight loss with diabetes",          basis: "current", grams: [75, 105, 145, 170, 220, 270, 310, 350, 425, 560] } } },
+            // Cat W1: from Virbac UK website (checked 22 Oct 2026). Virbac make W1 as DRY only (no wet version).
+            // The "obese with diabetes" cat table is NOT included yet: Virbac UK shows it as a picture. Add it from the bag.
+            cat: { kcal: 331, note: "Virbac HPM W1 cat (dry only), Virbac UK guide, 331 kcal/100g. Based on TARGET weight. Virbac make no wet W1.", recheck: "every week while losing weight, monthly once stable", weights: [2, 3, 4, 5, 6, 7, 8, 9, 10], plans: {
+                high:     { label: "High restriction (weight loss)",     basis: "target",  grams: [15, 25, 35, 45, 50, 60, 70, 80, 85] },
+                moderate: { label: "Moderate restriction (weight loss)", basis: "target",  grams: [25, 35, 45, 60, 70, 80, 95, 105, 115] } } }
         },
         virbac_w2: {
             name: "Virbac W2", col: "#0055a5",
-            dog: { note: "Virbac HPM W2 guide, 324 kcal/100g.", recheck: "every week (monthly once on maintenance)", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
+            dog: { kcal: 324, note: "Virbac HPM W2 guide, 324 kcal/100g.", recheck: "every week (monthly once on maintenance)", weights: [3, 5, 8, 10, 15, 20, 25, 30, 40, 60], plans: {
                 loss:     { label: "Weight loss",                  basis: "target",  grams: [65, 90, 125, 145, 190, 225, 265, 300, 360, 475] },
                 control:  { label: "Weight control (maintenance)", basis: "current", grams: [70, 100, 140, 160, 210, 255, 295, 335, 405, 530] },
-                diabetes: { label: "Diabetes (without obesity)",   basis: "current", grams: [100, 140, 195, 225, 295, 355, 410, 465, 560, 740] } } }
+                diabetes: { label: "Diabetes (without obesity)",   basis: "current", grams: [100, 140, 195, 225, 295, 355, 410, 465, 560, 740] } } },
+            // Cat W2: from Virbac UK website (checked 22 Oct 2026). Dry only. Uses CURRENT weight.
+            cat: { kcal: 342, note: "Virbac HPM W2 cat (dry only), Virbac UK guide, 342 kcal/100g. Based on CURRENT weight. Virbac make no wet W2.", recheck: "every week while losing weight, monthly once on maintenance", weights: [2, 3, 4, 5, 6, 7, 8, 9, 10], plans: {
+                loss:     { label: "Weight loss",                  basis: "current", grams: [20, 35, 45, 55, 65, 80, 90, 100, 110] },
+                control:  { label: "Weight control (maintenance)", basis: "current", grams: [25, 40, 50, 65, 75, 90, 100, 115, 125] },
+                diabetes: { label: "Diabetes (without obesity)",   basis: "current", grams: [25, 40, 50, 65, 75, 90, 100, 115, 125] } } }
         }
     };
     function toggleVirbacPlan() {
@@ -474,7 +506,7 @@
         const table = DIETS[d][s];
         if (!table) {
             const o = document.createElement('option');
-            o.value = ''; o.textContent = 'No cat feeding table for this food';
+            o.value = ''; o.textContent = 'No ' + s + ' feeding table for this food';
             sel.appendChild(o);
         } else {
             for (const key in table.plans) {
@@ -483,6 +515,10 @@
                 sel.appendChild(o);
             }
         }
+        document.getElementById('res-diets').style.display = 'none';
+    }
+    function toggleMix() {
+        document.getElementById('mix-group').style.display = document.getElementById('dmix').value === 'mixed' ? 'block' : 'none';
         document.getElementById('res-diets').style.display = 'none';
     }
     function tableLookup(weights, grams, kg) {
@@ -505,7 +541,7 @@
 
         const food = DIETS[d];
         const table = food[s];
-        if (!table) { alert(`${food.name} here is a DOG food. Please choose Canine, or pick a different diet for cats.`); return; }
+        if (!table) { alert(`There is no ${s === 'cat' ? 'cat' : 'dog'} feeding table for ${food.name}. Please pick a different diet.`); return; }
         const plan = table.plans[document.getElementById('vplan').value];
         const useKg = plan.basis === 'target' ? tw : cw;
         const g = tableLookup(table.weights, plan.grams, useKg);
@@ -513,11 +549,32 @@
         const badge = document.getElementById('badge-diet'); badge.style.backgroundColor = food.col; badge.innerText = food.name;
         const minW = table.weights[0], maxW = table.weights[table.weights.length - 1];
         if (g === null) {
-            document.getElementById('out-diets').innerText = `Outside feeding table`;
+            document.getElementById('out-diets').innerHTML = `Outside feeding table`;
             document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>This feeding table covers ${minW}–${maxW} kg (${plan.basis} weight). ${useKg}kg is outside this, so please check the ration with the vet.<br>${table.note}`;
         } else {
-            document.getElementById('out-diets').innerText = `${Math.round(g)} grams / day`;
-            document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>Plan: ${plan.label}.<br>Read from the maker's feeding table using the <strong>${plan.basis.toUpperCase()}</strong> weight of ${useKg}kg (values between table rows are worked out in a straight line).<br>${table.note}<br><br>Re-weigh and adjust ${table.recheck}. Always check against the guide on the bag.`;
+            let outText = `${Math.round(g)} grams / day`;
+            let mixText = '';
+            if (document.getElementById('dmix').value === 'mixed') {
+                const pct = parseFloat(document.getElementById('dmixpct').value);
+                const wetKcal = parseFloat(document.getElementById('dwetkcal').value);
+                const wetSize = parseFloat(document.getElementById('dwetsize').value);
+                const wetName = document.getElementById('dwetname').value.trim().replace(/[<>&]/g, '') || 'Wet food';
+                if (!table.kcal) {
+                    mixText = `<br><span style="color:#c53030;">Wet + dry not calculated: no energy value (kcal) is stored for this dry food.</span>`;
+                } else if (!wetKcal || wetKcal <= 0) {
+                    mixText = `<br><span style="color:#c53030;">Wet + dry not calculated: enter the wet food's kcal per 100 g (it is on the pouch/tin label).</span>`;
+                } else {
+                    const totalKcal = g * table.kcal / 100;
+                    const wetKcalToday = totalKcal * pct;
+                    const dryG = g * (1 - pct);
+                    const wetG = wetKcalToday / (wetKcal / 100);
+                    const pouches = wetSize > 0 ? ` (${(wetG / wetSize).toFixed(1)} × ${wetSize}g pouch/tin)` : '';
+                    outText = `Dry (${food.name}): ${Math.round(dryG)} g / day<br>${wetName}: ${Math.round(wetG)} g / day${pouches}`;
+                    mixText = `<br><br><strong>Wet + dry working:</strong><br>Dry-only ration ${Math.round(g)}g × ${table.kcal} kcal/100g = ${Math.round(totalKcal)} kcal/day.<br>${Math.round(pct*100)}% of calories from wet = ${Math.round(wetKcalToday)} kcal ÷ ${wetKcal} kcal/100g = ${Math.round(wetG)}g wet.<br>Remaining ${Math.round((1-pct)*100)}% from dry = ${Math.round(dryG)}g dry.<br>This is an energy-based estimate. The wet food must be one the vet has approved for this patient.`;
+                }
+            }
+            document.getElementById('out-diets').innerHTML = outText;
+            document.getElementById('break-diets').innerHTML = `<strong>Clinical parameters:</strong><br>Plan: ${plan.label}.<br>Read from the maker's feeding table using the <strong>${plan.basis.toUpperCase()}</strong> weight of ${useKg}kg (values between table rows are worked out in a straight line).<br>${table.note}${mixText}<br><br>Re-weigh and adjust ${table.recheck}. Always check against the guide on the bag.`;
         }
         document.getElementById('res-diets').style.display = 'block';
     }
